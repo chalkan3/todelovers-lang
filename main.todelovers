@@ -1,0 +1,20 @@
+(tode-broadcast
+    (def-todelovers
+        (type[igor]
+            (public
+                string#hello
+            )
+            (private
+                string#hello
+            )
+        )
+    )
+    (functions
+        (def-func newFunc()
+            <- (add 1 2)
+        )
+    )
+    (main-frank
+        (add 1 10)
+    )
+)
