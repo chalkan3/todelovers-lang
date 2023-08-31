@@ -15,6 +15,7 @@
         )
     )
     (main-frank
+        (nando-talk hello world)
         (add 1 10)
     )
 )

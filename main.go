@@ -49,6 +49,7 @@ func (l *Lexer) Tokenize() {
 		{regexp.MustCompile(`[ \t]+`), "WHITESPACE"},
 		{regexp.MustCompile(`tode-broadcast`), "CONTEXT"},
 		{regexp.MustCompile(`\n`), "NEWLINE"},
+		{regexp.MustCompile(`nando-talk`), "PRINT"},
 		{regexp.MustCompile(`def-todelovers`), "DEF-TODELOVERS"},
 		{regexp.MustCompile(`type`), "TYPE"},
 		{regexp.MustCompile(`\[`), "LEFTCOL"},
@@ -99,6 +100,15 @@ func Eval(node ASTNode) int {
 		left := Eval(node.Children[0])
 		right := Eval(node.Children[1])
 		return left + right
+	case "PRINT":
+		if len(node.Children) < 2 {
+			panic("Invalid 'add' operation")
+		}
+
+		left := Eval(node.Children[1])
+		right := Eval(node.Children[2])
+		fmt.Println("Hello Word", left, right)
+		return 0
 	case "DEF-FUNC":
 		return 0
 		// Handle function definitions
@@ -172,7 +182,7 @@ func main() {
 				break
 			}
 
-			if nextToken.Type == "OPEN_PAREN" || nextToken.Type == "ADD" {
+			if nextToken.Type == "OPEN_PAREN" || nextToken.Type == "ADD" || nextToken.Type == "PRINT" {
 				t := buildAST(nextToken)
 				node.Children = append(node.Children, t)
 			} else {
