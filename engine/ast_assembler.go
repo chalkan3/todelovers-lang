@@ -17,22 +17,20 @@ func NewASTAssembler(lexer *Lexer, nodeFactory *NodeFactory) *ASTAssembler {
 }
 
 func (a *ASTAssembler) parser(token Token) Node {
-
 	root := a.nodeFactory.Create(token.Type, token.Value).(*FunctionCallNode)
 
 	for {
 		nextToken := a.lexer.NextToken()
 
-		if nextToken.Type == EOF {
-			break
-		}
-		if nextToken.Type == WHITESPACE {
+		if isWhiteSpace(nextToken.Type) {
 			continue
 		}
-		if nextToken.Type == CLOSE_PAREN {
+
+		if isEOF(nextToken.Type) || isCloseParentesis(nextToken.Type) {
 			break
 		}
-		if nextToken.Type == OPEN_PAREN || nextToken.Type == CONTEXT || nextToken.Type == DEF_TODELOVERS || nextToken.Type == ADD {
+
+		if isNewContext(nextToken.Type) {
 			root.Arguments = append(root.Arguments, a.parser(nextToken))
 		} else {
 			root.Arguments = append(root.Arguments, a.nodeFactory.Create(nextToken.Type, nextToken.Value))
@@ -60,7 +58,7 @@ func (a *ASTAssembler) GetRoot() Node { return a.root }
 func (a *ASTAssembler) debug(node Node, indent string) {
 	fmt.Printf("%sType: %s, Token: %v\n", indent, node.Type().String(), node.Token())
 
-	if node.Type() == OPEN_PAREN || node.Type() == CONTEXT || node.Type() == DEF_TODELOVERS || node.Type() == CALL_FUNCTION || node.Type() == ADD {
+	if isNewContext(node.Type()) {
 		for _, child := range node.(*FunctionCallNode).Arguments {
 			a.debug(child, indent+"  ")
 		}
