@@ -1,157 +1,133 @@
 package engine
 
-// import (
-// 	"fmt"
-// 	"strings"
-// )
+import (
+	"regexp"
+	"strings"
+)
 
-// type Token int
+type TokenType int
 
-// func (t Token) ToInt() int { return int(t) }
+func (t TokenType) String() string {
+	return [...]string{
+		"OPEN_PAREN",
+		"WHITESPACE",
+		"CONTEXT",
+		"NEWLINE",
+		"PRINT",
+		"DEF_TODELOVERS",
+		"TYPE",
+		"LEFTCOL",
+		"RIGHTCOL",
+		"PUBLIC",
+		"PRIVATE",
+		"HASHTAG",
+		"FUNCTION_ZONE",
+		"DEF_FUNC",
+		"MAIN",
+		"LEFTARROW",
+		"RIGHTARROW",
+		"ADD",
+		"NUMBER",
+		"IDENTIFIER",
+		"CLOSE_PAREN",
+		"CALL_FUNCTION",
+		"RETURN",
+		"EOF",
+	}[t]
+}
 
-// const (
-// 	KEYWORD Token = iota
-// 	OPERATOR
-// 	IDENTIFIER
-// 	LITERAL
-// 	EOF
-// )
+const (
+	OPEN_PAREN = iota
+	WHITESPACE
+	CONTEXT
+	NEWLINE
+	PRINT
+	DEF_TODELOVERS
+	TYPE
+	LEFTCOL
+	RIGHTCOL
+	PUBLIC
+	PRIVATE
+	HASHTAG
+	FUNCTION_ZONE
+	DEF_FUNC
+	MAIN
+	LEFTARROW
+	RIGHTARROW
+	ADD
+	NUMBER
+	IDENTIFIER
+	CLOSE_PAREN
+	CALL_FUNCTION
+	RETURN
+	EOF
+)
 
-// func Lex(input string) []Token {
-// 	var tokens []Token
-// 	var state int
+type Token struct {
+	Type  TokenType
+	Value string
+}
 
-// 	for _, c := range input {
-// 		cb := byte(c)
-// 		switch state {
-// 		case 0:
-// 			if isKeyword(cb) {
-// 				state = KEYWORD.ToInt()
-// 			} else if isOperator(cb) {
-// 				state = OPERATOR.ToInt()
-// 			} else if isIdentifierStart(cb) {
-// 				state = IDENTIFIER.ToInt()
-// 			} else if isLiteralStart(cb) {
-// 				state = LITERAL.ToInt()
-// 			} else {
-// 				fmt.Errorf("Unexpected character: %c", c)
-// 			}
-// 		case KEYWORD.ToInt():
-// 			if !isKeyword(cb) {
-// 				tokens = append(tokens, KEYWORD)
-// 				state = 0
-// 			}
-// 		case OPERATOR.ToInt():
-// 			if !isOperator(cb) {
-// 				tokens = append(tokens, OPERATOR)
-// 				state = 0
-// 			}
-// 		case IDENTIFIER.ToInt():
-// 			if isIdentifierChar(cb) {
-// 			} else {
-// 				tokens = append(tokens, IDENTIFIER)
-// 				state = 0
-// 			}
-// 		case LITERAL.ToInt():
-// 			if isLiteralChar(cb) {
-// 			} else {
-// 				tokens = append(tokens, LITERAL)
-// 				state = 0
-// 			}
-// 		}
-// 	}
+// Lexer represents the lexer for the DSL.
+type Lexer struct {
+	input   string
+	current int
+	tokens  []Token
+}
 
-// 	if state != 0 {
-// 		fmt.Errorf("Unterminated token")
-// 	}
+// NewLexer creates a new lexer for the DSL.
+func NewLexer(input string) *Lexer {
+	return &Lexer{input, 0, []Token{}}
+}
 
-// 	return tokens
+// NextToken returns the next token in the input.
+func (l *Lexer) NextToken() Token {
+	if l.current >= len(l.tokens) {
+		return Token{EOF, ""}
+	}
+	token := l.tokens[l.current]
+	l.current++
 
-// }
+	return token
+}
 
-// func isKeyword(c byte) bool {
-// 	return strings.ContainsRune("god-power creatures type private public def-func main tode zoia-ae destroy graceful-end void-zone exit", rune(c))
-// }
+// Tokenize performs lexical analysis of the DSL and stores the tokens.
+func (l *Lexer) Tokenize() *Lexer {
+	tokenPatterns := []struct {
+		pattern *regexp.Regexp
+		token   TokenType
+	}{
+		{regexp.MustCompile(`\(`), OPEN_PAREN},
+		{regexp.MustCompile(`[ \t]+`), WHITESPACE},
+		{regexp.MustCompile(`tode-broadcast`), CONTEXT},
+		{regexp.MustCompile(`\n`), NEWLINE},
+		{regexp.MustCompile(`nando-talk`), PRINT},
+		{regexp.MustCompile(`def-todelovers`), DEF_TODELOVERS},
+		{regexp.MustCompile(`type`), TYPE},
+		{regexp.MustCompile(`\[`), LEFTCOL},
+		{regexp.MustCompile(`\]`), RIGHTCOL},
+		{regexp.MustCompile(`public`), PUBLIC},
+		{regexp.MustCompile(`private`), PRIVATE},
+		{regexp.MustCompile(`#`), HASHTAG},
+		{regexp.MustCompile(`functions`), FUNCTION_ZONE},
+		{regexp.MustCompile(`def-func`), DEF_FUNC},
+		{regexp.MustCompile(`main-frank`), MAIN},
+		{regexp.MustCompile(`->`), LEFTARROW},
+		{regexp.MustCompile(`<-`), RIGHTARROW},
+		{regexp.MustCompile(`add`), ADD},
+		{regexp.MustCompile(`\b\d+\b`), NUMBER},
+		// {regexp.MustCompile(`\b[^(\s]+\b`), IDENTIFIER},
+		{regexp.MustCompile(`\)`), CLOSE_PAREN},
+	}
 
-// func isOperator(c byte) bool {
-// 	return strings.ContainsRune("() <- -> |", rune(c))
-// }
+	lines := strings.Split(l.input, "\n")
+	for _, line := range lines {
+		for _, pattern := range tokenPatterns {
+			for _, match := range pattern.pattern.FindAllString(line, -1) {
+				l.tokens = append(l.tokens, Token{pattern.token, match})
+			}
+		}
+	}
 
-// func isIdentifierStart(c byte) bool {
-// 	return c >= 'a' && c <= 'z' ||
-// 		c >= 'A' && c <= 'Z' ||
-// 		c == '_'
-// }
-
-// func isIdentifierChar(c byte) bool { return isIdentifierStart(c) || c >= '0' && c <= '9' }
-// func isLiteralStart(c byte) bool   { return c == '"' }
-// func isLiteralChar(c byte) bool    { return c != '"' }
-
-// // func Lex(input string) []Token {
-// // 	var tokens []Token
-
-// // 	regex := regexp.MustCompile(`\s*([+*/()/|#]|((<-|->)[^-])|(int|string)|(god-power[^(])|(tode[^(])|(destroy[^(])|(creatures[^(])|(private[^(])|(public[^(])|(def-func[^(])|(graceful-end[^(])|(zoia-ae[^(])|(main[^(])|(exit[^(])|\d+)`)
-
-// // 	matches := regex.FindAllStringSubmatch(input, -1)
-// // 	for _, match := range matches {
-// // 		tokenValue := strings.TrimSpace(match[1])
-// // 		if tokenValue == "" {
-// // 			continue
-// // 		}
-
-// // 		switch {
-// // 		case tokenValue == "+", tokenValue == "-", tokenValue == "*", tokenValue == "/":
-// // 			tokens = append(tokens, token{TokenOperator, tokenValue})
-// // 		case tokenValue == "(":
-// // 			tokens = append(tokens, token{TokenLeftParen, tokenValue})
-// // 		case tokenValue == ")":
-// // 			tokens = append(tokens, token{TokenRightParen, tokenValue})
-// // 		case tokenValue == "god-power":
-// // 			tokens = append(tokens, token{TokenGodPower, tokenValue})
-// // 		case regexp.MustCompile(`\d+`).MatchString(tokenValue):
-// // 			tokens = append(tokens, token{TokenNumber, tokenValue})
-// // 			// default:
-// // 			// 	tokens = append(tokens, token{TokenError, tokenValue})
-// // 		}
-// // 	}
-
-// // 	tokens = append(tokens, token{TokenEOF, ""})
-// // 	return tokens
-// // }
-
-// // func main() {
-// // 	fmt.Println(Lex(`(god-power
-// // 		(creatures
-// // 			(type [diniz]
-// // 				(private
-// // 					int#idade 	   |
-// // 					string#feiura  |
-// // 				) |
-// // 				(public
-// // 					bool#feiura2 	|
-// // 					bool#feiura3	|
-// // 				)
-// // 			)
-// // 		) | (tode exitCode <- (void-zone
-// // 				(def-func newFunc ()
-// // 					(tode variable1 -> (add 1 1)) |
-// // 					(tode variable2 -> (add 2 2)) |
-// // 					<- (add variable1 variable2)  |
-// // 				) | (def-func newFunc2 (int#var1, int#var2)
-// // 					<- (add var1 var2) |
-// // 				)
-// // 			) | (main
-// // 					(tode variable3 -> (newFunc)) |
-// // 					(tode variable4-> (newFunc2 1 1)) |
-// // 					(zoia-ae variable3) |
-// // 					(zoia-ae variable4) |
-// // 			) | (graceful-end
-// // 				(destroy variable1)  |
-// // 				(destroy variable2)  |
-// // 				(destroy variable3)	 |
-// // 				(destroy variable4)  |
-// // 				<- 1
-// // 			)
-// // 		) | (exit exitCode)
-// // )`))
-// // }
+	return l
+}

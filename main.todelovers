@@ -1,4 +1,4 @@
-(tode-broadcast
+(tode-broadcast 
     (def-todelovers
         (type[igor]
             (public
@@ -13,9 +13,18 @@
         (def-func newFunc()
             <- (add 1 2)
         )
+        (def-func add2(number#var1 number#var2)
+            <- (add var1 var2)
+        )
     )
     (main-frank
         (nando-talk hello world)
         (add 1 10)
+        (add2 1 2)
     )
 )
+
+
+
+
+
