@@ -1,33 +1,33 @@
 package engine
 
 type Node interface {
-	Eval(sTable *SymbolTable) interface{}
-	Type() TokenType
+	Eval(sTable *symbolTable) interface{}
+	Type() tokenType
 	Token() string
 }
 
-type NumberNode struct {
+type numberNode struct {
 	T     string
 	Value int
 }
 
-func (nn *NumberNode) Type() TokenType { return NUMBER }
-func (nn *NumberNode) Token() string   { return nn.T }
-func (nn *NumberNode) Eval(sTable *SymbolTable) interface{} {
+func (nn *numberNode) Type() tokenType { return number }
+func (nn *numberNode) Token() string   { return nn.T }
+func (nn *numberNode) Eval(sTable *symbolTable) interface{} {
 	return nn.Value
 }
 
-type OperationNode struct {
+type operationNode struct {
 	T        string
 	Operator string
 	Left     Node
 	Right    Node
 }
 
-func (on *OperationNode) Type() TokenType { return OPEN_PAREN }
-func (on *OperationNode) Token() string   { return on.T }
+func (on *operationNode) Type() tokenType { return open_paren }
+func (on *operationNode) Token() string   { return on.T }
 
-func (on *OperationNode) Eval(sTable *SymbolTable) interface{} {
+func (on *operationNode) Eval(sTable *symbolTable) interface{} {
 	leftValue := on.Left.Eval(sTable).(int)
 	rightValue := on.Right.Eval(sTable).(int)
 
@@ -49,53 +49,53 @@ func (on *OperationNode) Eval(sTable *SymbolTable) interface{} {
 
 }
 
-type StringNode struct {
+type stringNode struct {
 	T     string
 	Value string
 }
 
-func (sn *StringNode) Type() TokenType { return IDENTIFIER }
-func (sn *StringNode) Token() string   { return sn.T }
-func (sn *StringNode) Eval(sTable *SymbolTable) interface{} {
+func (sn *stringNode) Type() tokenType { return identifier }
+func (sn *stringNode) Token() string   { return sn.T }
+func (sn *stringNode) Eval(sTable *symbolTable) interface{} {
 	return sn.Value
 }
 
-// FunctionCallNode represents a function call in the AST.
-type FunctionNode struct {
+// functionCallNode represents a function call in the AST.
+type functionNode struct {
 	T          string
 	Name       string
 	Parameters []string
 	Body       Node
 }
 
-func (fn *FunctionNode) Type() TokenType { return DEF_FUNC }
-func (fn *FunctionNode) Token() string   { return fn.T }
+func (fn *functionNode) Type() tokenType { return def_func }
+func (fn *functionNode) Token() string   { return fn.T }
 
-// FunctionNode represents a function definition in the AST.
-func (fn *FunctionNode) Eval(sTable *SymbolTable) interface{} {
+// functionNode represents a function definition in the AST.
+func (fn *functionNode) Eval(sTable *symbolTable) interface{} {
 	sTable.AddFunction(fn.Name, fn)
 	return nil
 }
 
-// FunctionCallNode represents a function call in the AST.
-type FunctionCallNode struct {
+// functionCallNode represents a function call in the AST.
+type functionCallNode struct {
 	T         string
 	Name      string
 	Arguments []Node
 }
 
-func (fc *FunctionCallNode) Type() TokenType { return CALL_FUNCTION }
-func (fc *FunctionCallNode) Token() string   { return fc.T }
-func (fc *FunctionCallNode) Eval(sTable *SymbolTable) interface{} {
+func (fc *functionCallNode) Type() tokenType { return call_function }
+func (fc *functionCallNode) Token() string   { return fc.T }
+func (fc *functionCallNode) Eval(sTable *symbolTable) interface{} {
 	fn := sTable.GetFunction(fc.Name)
 	if fn == nil {
 		panic("Function not found: " + fc.Name)
 	}
 
 	// Create a new symbol table for the function call, inheriting the parent table's functions
-	newSymbolTable := NewSymbolTable()
+	newsymbolTable := NewSymbolTable()
 	for name, f := range sTable.Functions {
-		newSymbolTable.AddFunction(name, f)
+		newsymbolTable.AddFunction(name, f)
 	}
 
 	if len(fc.Arguments) != len(fn.Parameters) {
@@ -105,238 +105,238 @@ func (fc *FunctionCallNode) Eval(sTable *SymbolTable) interface{} {
 	// Bind arguments to parameters
 	for i, paramName := range fn.Parameters {
 		argValue := fc.Arguments[i].Eval(sTable)
-		newSymbolTable.Variables[paramName] = argValue
+		newsymbolTable.Variables[paramName] = argValue
 
 	}
 
 	// Evaluate the function's body within its own symbol table
-	return fn.Body.Eval(newSymbolTable)
+	return fn.Body.Eval(newsymbolTable)
 }
 
-type OpenParenNode struct {
+type openParenNode struct {
 	T string
 }
 
-func (op *OpenParenNode) Type() TokenType { return OPEN_PAREN }
-func (op *OpenParenNode) Token() string   { return op.T }
-func (op *OpenParenNode) Eval(sTable *SymbolTable) interface{} {
+func (op *openParenNode) Type() tokenType { return open_paren }
+func (op *openParenNode) Token() string   { return op.T }
+func (op *openParenNode) Eval(sTable *symbolTable) interface{} {
 	return nil
 }
 
-type WhiteSpaceNode struct {
+type whiteSoaceNode struct {
 	T string
 }
 
-func (w *WhiteSpaceNode) Type() TokenType { return WHITESPACE }
-func (w *WhiteSpaceNode) Token() string   { return w.T }
-func (w *WhiteSpaceNode) Eval(sTable *SymbolTable) interface{} {
+func (w *whiteSoaceNode) Type() tokenType { return whitespace }
+func (w *whiteSoaceNode) Token() string   { return w.T }
+func (w *whiteSoaceNode) Eval(sTable *symbolTable) interface{} {
 	return nil
 }
 
-type ContextNode struct {
+type contextNode struct {
 	T string
 }
 
-func (ct *ContextNode) Type() TokenType { return CONTEXT }
-func (ct *ContextNode) Token() string   { return ct.T }
-func (ct *ContextNode) Eval(sTable *SymbolTable) interface{} {
+func (ct *contextNode) Type() tokenType { return context }
+func (ct *contextNode) Token() string   { return ct.T }
+func (ct *contextNode) Eval(sTable *symbolTable) interface{} {
 	return nil
 }
 
-type ReturnNode struct {
+type returnNode struct {
 	T     string
 	Value Node
 }
 
-func (r *ReturnNode) Type() TokenType { return RETURN }
-func (r *ReturnNode) Token() string   { return r.T }
-func (r *ReturnNode) Eval(s *SymbolTable) interface{} {
+func (r *returnNode) Type() tokenType { return returns }
+func (r *returnNode) Token() string   { return r.T }
+func (r *returnNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type NewLineNode struct {
+type newLineNode struct {
 	T     string
 	Value Node
 }
 
-func (r *NewLineNode) Type() TokenType { return NEWLINE }
-func (r *NewLineNode) Token() string   { return r.T }
-func (r *NewLineNode) Eval(s *SymbolTable) interface{} {
+func (r *newLineNode) Type() tokenType { return newline }
+func (r *newLineNode) Token() string   { return r.T }
+func (r *newLineNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type PrintNode struct {
+type printNode struct {
 	T     string
 	Value Node
 }
 
-func (r *PrintNode) Type() TokenType { return PRINT }
-func (r *PrintNode) Token() string   { return r.T }
-func (r *PrintNode) Eval(s *SymbolTable) interface{} {
+func (r *printNode) Type() tokenType { return print }
+func (r *printNode) Token() string   { return r.T }
+func (r *printNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type DefTodeLoverstNode struct {
+type defTodeLoverstNode struct {
 	T     string
 	Value Node
 }
 
-func (r *DefTodeLoverstNode) Type() TokenType { return DEF_TODELOVERS }
-func (r *DefTodeLoverstNode) Token() string   { return r.T }
-func (r *DefTodeLoverstNode) Eval(s *SymbolTable) interface{} {
+func (r *defTodeLoverstNode) Type() tokenType { return def_todelovers }
+func (r *defTodeLoverstNode) Token() string   { return r.T }
+func (r *defTodeLoverstNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type TypeNode struct {
+type typeNode struct {
 	T     string
 	Value Node
 }
 
-func (r *TypeNode) Type() TokenType { return TYPE }
-func (r *TypeNode) Token() string   { return r.T }
-func (r *TypeNode) Eval(s *SymbolTable) interface{} {
+func (r *typeNode) Type() tokenType { return types }
+func (r *typeNode) Token() string   { return r.T }
+func (r *typeNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type LeftColNode struct {
+type leftColNode struct {
 	T     string
 	Value Node
 }
 
-func (r *LeftColNode) Type() TokenType { return LEFTCOL }
-func (r *LeftColNode) Token() string   { return r.T }
-func (r *LeftColNode) Eval(s *SymbolTable) interface{} {
+func (r *leftColNode) Type() tokenType { return leftcol }
+func (r *leftColNode) Token() string   { return r.T }
+func (r *leftColNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type RightColNode struct {
+type rightColNode struct {
 	T     string
 	Value Node
 }
 
-func (r *RightColNode) Type() TokenType { return RIGHTCOL }
-func (r *RightColNode) Token() string   { return r.T }
-func (r *RightColNode) Eval(s *SymbolTable) interface{} {
+func (r *rightColNode) Type() tokenType { return rightcol }
+func (r *rightColNode) Token() string   { return r.T }
+func (r *rightColNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type PublicNode struct {
+type publicNode struct {
 	T     string
 	Value Node
 }
 
-func (r *PublicNode) Type() TokenType { return PUBLIC }
-func (r *PublicNode) Token() string   { return r.T }
-func (r *PublicNode) Eval(s *SymbolTable) interface{} {
+func (r *publicNode) Type() tokenType { return public }
+func (r *publicNode) Token() string   { return r.T }
+func (r *publicNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type PrivateNode struct {
+type privateNode struct {
 	T     string
 	Value Node
 }
 
-func (r *PrivateNode) Type() TokenType { return PRIVATE }
-func (r *PrivateNode) Token() string   { return r.T }
-func (r *PrivateNode) Eval(s *SymbolTable) interface{} {
+func (r *privateNode) Type() tokenType { return private }
+func (r *privateNode) Token() string   { return r.T }
+func (r *privateNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type HashTagNode struct {
+type hashTagNode struct {
 	T     string
 	Value Node
 }
 
-func (r *HashTagNode) Type() TokenType { return HASHTAG }
-func (r *HashTagNode) Token() string   { return r.T }
-func (r *HashTagNode) Eval(s *SymbolTable) interface{} {
+func (r *hashTagNode) Type() tokenType { return hashTag }
+func (r *hashTagNode) Token() string   { return r.T }
+func (r *hashTagNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type FunctionZoneNode struct {
+type functionZoneNode struct {
 	T     string
 	Value Node
 }
 
-func (r *FunctionZoneNode) Type() TokenType { return FUNCTION_ZONE }
-func (r *FunctionZoneNode) Token() string   { return r.T }
-func (r *FunctionZoneNode) Eval(s *SymbolTable) interface{} {
+func (r *functionZoneNode) Type() tokenType { return function_zone }
+func (r *functionZoneNode) Token() string   { return r.T }
+func (r *functionZoneNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type MainNode struct {
+type mainNode struct {
 	T     string
 	Value Node
 }
 
-func (r *MainNode) Type() TokenType { return MAIN }
-func (r *MainNode) Token() string   { return r.T }
-func (r *MainNode) Eval(s *SymbolTable) interface{} {
+func (r *mainNode) Type() tokenType { return main }
+func (r *mainNode) Token() string   { return r.T }
+func (r *mainNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type LeftArrowNode struct {
+type leftArrowNode struct {
 	T     string
 	Value Node
 }
 
-func (r *LeftArrowNode) Type() TokenType { return LEFTARROW }
-func (r *LeftArrowNode) Token() string   { return r.T }
-func (r *LeftArrowNode) Eval(s *SymbolTable) interface{} {
+func (r *leftArrowNode) Type() tokenType { return leftarroe }
+func (r *leftArrowNode) Token() string   { return r.T }
+func (r *leftArrowNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type RightArrowNode struct {
+type rightArrowNode struct {
 	T     string
 	Value Node
 }
 
-func (r *RightArrowNode) Type() TokenType { return RIGHTARROW }
-func (r *RightArrowNode) Token() string   { return r.T }
-func (r *RightArrowNode) Eval(s *SymbolTable) interface{} {
+func (r *rightArrowNode) Type() tokenType { return rightarrow }
+func (r *rightArrowNode) Token() string   { return r.T }
+func (r *rightArrowNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type AddNode struct {
+type addNode struct {
 	T     string
 	Value Node
 }
 
-func (r *AddNode) Type() TokenType { return ADD }
-func (r *AddNode) Token() string   { return r.T }
-func (r *AddNode) Eval(s *SymbolTable) interface{} {
+func (r *addNode) Type() tokenType { return add }
+func (r *addNode) Token() string   { return r.T }
+func (r *addNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type IdentifierNode struct {
+type identifierNode struct {
 	T     string
 	Value Node
 }
 
-func (r *IdentifierNode) Type() TokenType { return TYPE }
-func (r *IdentifierNode) Token() string   { return r.T }
-func (r *IdentifierNode) Eval(s *SymbolTable) interface{} {
+func (r *identifierNode) Type() tokenType { return types }
+func (r *identifierNode) Token() string   { return r.T }
+func (r *identifierNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type CloseParenNode struct {
+type closeParenNode struct {
 	T     string
 	Value Node
 }
 
-func (r *CloseParenNode) Type() TokenType { return CLOSE_PAREN }
-func (r *CloseParenNode) Token() string   { return r.T }
-func (r *CloseParenNode) Eval(s *SymbolTable) interface{} {
+func (r *closeParenNode) Type() tokenType { return close_paren }
+func (r *closeParenNode) Token() string   { return r.T }
+func (r *closeParenNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }
 
-type EOFNode struct {
+type eofNode struct {
 	T     string
 	Value Node
 }
 
-func (r *EOFNode) Type() TokenType { return EOF }
-func (r *EOFNode) Token() string   { return r.T }
-func (r *EOFNode) Eval(s *SymbolTable) interface{} {
+func (r *eofNode) Type() tokenType { return eof }
+func (r *eofNode) Token() string   { return r.T }
+func (r *eofNode) Eval(s *symbolTable) interface{} {
 	return r.Value.Eval(s)
 }

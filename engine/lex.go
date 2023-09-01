@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-type TokenType int
+type tokenType int
 
-func (t TokenType) String() string {
+func (t tokenType) String() string {
 	return [...]string{
 		"OPEN_PAREN",
 		"WHITESPACE",
@@ -15,75 +15,76 @@ func (t TokenType) String() string {
 		"NEWLINE",
 		"PRINT",
 		"DEF_TODELOVERS",
-		"TYPE",
+		"TYPES",
 		"LEFTCOL",
 		"RIGHTCOL",
 		"PUBLIC",
 		"PRIVATE",
-		"HASHTAG",
+		"hashTag",
 		"FUNCTION_ZONE",
 		"DEF_FUNC",
 		"MAIN",
-		"LEFTARROW",
+		"LEFTARROE",
 		"RIGHTARROW",
 		"ADD",
 		"NUMBER",
 		"IDENTIFIER",
 		"CLOSE_PAREN",
 		"CALL_FUNCTION",
-		"RETURN",
+		"RETURNS",
 		"EOF",
 	}[t]
+
 }
 
 const (
-	OPEN_PAREN = iota
-	WHITESPACE
-	CONTEXT
-	NEWLINE
-	PRINT
-	DEF_TODELOVERS
-	TYPE
-	LEFTCOL
-	RIGHTCOL
-	PUBLIC
-	PRIVATE
-	HASHTAG
-	FUNCTION_ZONE
-	DEF_FUNC
-	MAIN
-	LEFTARROW
-	RIGHTARROW
-	ADD
-	NUMBER
-	IDENTIFIER
-	CLOSE_PAREN
-	CALL_FUNCTION
-	RETURN
-	EOF
+	open_paren = iota
+	whitespace
+	context
+	newline
+	print
+	def_todelovers
+	types
+	leftcol
+	rightcol
+	public
+	private
+	hashTag
+	function_zone
+	def_func
+	main
+	leftarroe
+	rightarrow
+	add
+	number
+	identifier
+	close_paren
+	call_function
+	returns
+	eof
 )
 
-type Token struct {
-	Type  TokenType
+type token struct {
+	Type  tokenType
 	Value string
 }
 
 // Lexer represents the lexer for the DSL.
-type Lexer struct {
+type lexer struct {
 	input   string
 	current int
-	tokens  []Token
+	tokens  []token
 }
 
 // NewLexer creates a new lexer for the DSL.
-func NewLexer(input string) *Lexer {
-	return &Lexer{input, 0, []Token{}}
+func NewLexer(input string) *lexer {
+	return &lexer{input, 0, []token{}}
 }
 
-// NextToken returns the next token in the input.
-func (l *Lexer) NextToken() Token {
+// Nexttoken returns the next token in the input.
+func (l *lexer) NextToken() token {
 	if l.current >= len(l.tokens) {
-		return Token{EOF, ""}
+		return token{eof, ""}
 	}
 	token := l.tokens[l.current]
 	l.current++
@@ -91,40 +92,40 @@ func (l *Lexer) NextToken() Token {
 	return token
 }
 
-// Tokenize performs lexical analysis of the DSL and stores the tokens.
-func (l *Lexer) Tokenize() *Lexer {
+// tokenize performs lexical analysis of the DSL and stores the tokens.
+func (l *lexer) Tokenize() *lexer {
 	tokenPatterns := []struct {
 		pattern *regexp.Regexp
-		token   TokenType
+		token   tokenType
 	}{
-		{regexp.MustCompile(`\(`), OPEN_PAREN},
-		{regexp.MustCompile(`[ \t]+`), WHITESPACE},
-		{regexp.MustCompile(`tode-broadcast`), CONTEXT},
-		{regexp.MustCompile(`\n`), NEWLINE},
-		{regexp.MustCompile(`nando-talk`), PRINT},
-		{regexp.MustCompile(`def-todelovers`), DEF_TODELOVERS},
-		{regexp.MustCompile(`type`), TYPE},
-		{regexp.MustCompile(`\[`), LEFTCOL},
-		{regexp.MustCompile(`\]`), RIGHTCOL},
-		{regexp.MustCompile(`public`), PUBLIC},
-		{regexp.MustCompile(`private`), PRIVATE},
-		{regexp.MustCompile(`#`), HASHTAG},
-		{regexp.MustCompile(`functions`), FUNCTION_ZONE},
-		{regexp.MustCompile(`def-func`), DEF_FUNC},
-		{regexp.MustCompile(`main-frank`), MAIN},
-		{regexp.MustCompile(`->`), LEFTARROW},
-		{regexp.MustCompile(`<-`), RIGHTARROW},
-		{regexp.MustCompile(`add`), ADD},
-		{regexp.MustCompile(`\b\d+\b`), NUMBER},
-		// {regexp.MustCompile(`\b[^(\s]+\b`), IDENTIFIER},
-		{regexp.MustCompile(`\)`), CLOSE_PAREN},
+		{regexp.MustCompile(`\(`), open_paren},
+		{regexp.MustCompile(`[ \t]+`), whitespace},
+		{regexp.MustCompile(`tode-broadcast`), context},
+		{regexp.MustCompile(`\n`), newline},
+		{regexp.MustCompile(`nando-talk`), print},
+		{regexp.MustCompile(`def-todelovers`), def_todelovers},
+		{regexp.MustCompile(`type`), types},
+		{regexp.MustCompile(`\[`), leftcol},
+		{regexp.MustCompile(`\]`), rightcol},
+		{regexp.MustCompile(`public`), public},
+		{regexp.MustCompile(`private`), private},
+		{regexp.MustCompile(`#`), hashTag},
+		{regexp.MustCompile(`functions`), function_zone},
+		{regexp.MustCompile(`def-func`), def_func},
+		{regexp.MustCompile(`main-frank`), main},
+		{regexp.MustCompile(`->`), leftarroe},
+		{regexp.MustCompile(`<-`), rightarrow},
+		{regexp.MustCompile(`add`), add},
+		{regexp.MustCompile(`\b\d+\b`), number},
+		// {regexp.MustCompile(`\b[^(\s]+\b`), identifier},
+		{regexp.MustCompile(`\)`), close_paren},
 	}
 
 	lines := strings.Split(l.input, "\n")
 	for _, line := range lines {
 		for _, pattern := range tokenPatterns {
 			for _, match := range pattern.pattern.FindAllString(line, -1) {
-				l.tokens = append(l.tokens, Token{pattern.token, match})
+				l.tokens = append(l.tokens, token{pattern.token, match})
 			}
 		}
 	}

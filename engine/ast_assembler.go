@@ -2,22 +2,21 @@ package engine
 
 import "fmt"
 
-type parser func(tokens []Token) Node
-type ASTAssembler struct {
+type astAssembler struct {
 	root        Node
-	lexer       *Lexer
-	nodeFactory *NodeFactory
+	lexer       *lexer
+	nodeFactory *nodeFactory
 }
 
-func NewASTAssembler(lexer *Lexer, nodeFactory *NodeFactory) *ASTAssembler {
-	return &ASTAssembler{
+func NewASTAssembler(lexer *lexer, nodeFactory *nodeFactory) *astAssembler {
+	return &astAssembler{
 		lexer:       lexer,
 		nodeFactory: nodeFactory,
 	}
 }
 
-func (a *ASTAssembler) parser(token Token) Node {
-	root := a.nodeFactory.Create(token.Type, token.Value).(*FunctionCallNode)
+func (a *astAssembler) parser(token token) Node {
+	root := a.nodeFactory.Create(token.Type, token.Value).(*functionCallNode)
 
 	for {
 		nextToken := a.lexer.NextToken()
@@ -26,7 +25,7 @@ func (a *ASTAssembler) parser(token Token) Node {
 			continue
 		}
 
-		if isEOF(nextToken.Type) || isCloseParentesis(nextToken.Type) {
+		if iseof(nextToken.Type) || isCloseParentesis(nextToken.Type) {
 			break
 		}
 
@@ -41,7 +40,7 @@ func (a *ASTAssembler) parser(token Token) Node {
 	return root
 }
 
-func (a *ASTAssembler) Assembly(debug bool) *ASTAssembler {
+func (a *astAssembler) Assembly(debug bool) *astAssembler {
 	root := a.parser(a.lexer.NextToken())
 	if debug {
 		a.debug(root, "")
@@ -53,13 +52,13 @@ func (a *ASTAssembler) Assembly(debug bool) *ASTAssembler {
 
 }
 
-func (a *ASTAssembler) GetRoot() Node { return a.root }
+func (a *astAssembler) GetRoot() Node { return a.root }
 
-func (a *ASTAssembler) debug(node Node, indent string) {
+func (a *astAssembler) debug(node Node, indent string) {
 	fmt.Printf("%sType: %s, Token: %v\n", indent, node.Type().String(), node.Token())
 
 	if isNewContext(node.Type()) {
-		for _, child := range node.(*FunctionCallNode).Arguments {
+		for _, child := range node.(*functionCallNode).Arguments {
 			a.debug(child, indent+"  ")
 		}
 	}

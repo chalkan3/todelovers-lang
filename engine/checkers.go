@@ -1,13 +1,13 @@
 package engine
 
-func isNewContext(nodeType TokenType) bool {
-	return nodeType == OPEN_PAREN ||
-		nodeType == CONTEXT ||
-		nodeType == DEF_TODELOVERS ||
-		nodeType == CALL_FUNCTION ||
-		nodeType == ADD
+func isNewContext(nodeType tokenType) bool {
+	return nodeType == open_paren ||
+		nodeType == context ||
+		nodeType == def_todelovers ||
+		nodeType == call_function ||
+		nodeType == add
 }
 
-func isEOF(nodeType TokenType) bool             { return nodeType == EOF }
-func isWhiteSpace(nodeType TokenType) bool      { return nodeType == WHITESPACE }
-func isCloseParentesis(nodeType TokenType) bool { return nodeType == CLOSE_PAREN }
+func iseof(nodeType tokenType) bool             { return nodeType == eof }
+func isWhiteSpace(nodeType tokenType) bool      { return nodeType == whitespace }
+func isCloseParentesis(nodeType tokenType) bool { return nodeType == close_paren }

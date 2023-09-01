@@ -1,21 +1,21 @@
 package engine
 
-type SymbolTable struct {
-	Functions map[string]*FunctionNode
+type symbolTable struct {
+	Functions map[string]*functionNode
 	Variables map[string]interface{}
 }
 
-func NewSymbolTable() *SymbolTable {
-	return &SymbolTable{
-		Functions: make(map[string]*FunctionNode),
+func NewSymbolTable() *symbolTable {
+	return &symbolTable{
+		Functions: make(map[string]*functionNode),
 		Variables: make(map[string]interface{}),
 	}
 }
 
-func (s *SymbolTable) AddFunction(name string, function *FunctionNode) {
+func (s *symbolTable) AddFunction(name string, function *functionNode) {
 	s.Functions[name] = function
 }
 
-func (s *SymbolTable) GetFunction(name string) *FunctionNode {
+func (s *symbolTable) GetFunction(name string) *functionNode {
 	return s.Functions[name]
 }

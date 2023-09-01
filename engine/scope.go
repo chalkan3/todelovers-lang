@@ -1,6 +1,6 @@
 package engine
 
-type Scope struct {
+type scope struct {
 	Variables map[string]int
-	Parent    *Scope
+	Parent    *scope
 }

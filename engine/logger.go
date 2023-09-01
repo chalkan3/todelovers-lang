@@ -6,8 +6,8 @@ import (
 	"fmt"
 )
 
-type LoggerFn func(input ...interface{})
-type DebugMode int
+type loggerFn func(input ...interface{})
+type debugMode int
 
 const (
 	Stack = iota
@@ -24,10 +24,10 @@ func printStack(input ...interface{}) {
 	node := input[0].(Node)
 	indent := input[1].(string)
 
-	fmt.Printf("%sType: %s, Token: %v\n", indent, node.Type().String(), node.Token())
+	fmt.Printf("%sType: %s, token: %v\n", indent, node.Type().String(), node.Token())
 
 	if isNewContext(node.Type()) {
-		for _, child := range node.(*FunctionCallNode).Arguments {
+		for _, child := range node.(*functionCallNode).Arguments {
 			printStack(child, indent+"  ")
 		}
 	}
@@ -40,27 +40,27 @@ func printJSON(input ...interface{}) {
 	fmt.Println(string(prettyJSON.Bytes()))
 }
 
-func (dm DebugMode) String() string {
+func (dm debugMode) String() string {
 	return [...]string{"Stack", "JSON", "YAML", "Raw"}[dm]
 }
 
-func (dm DebugMode) Mode() LoggerFn {
-	return [...]LoggerFn{printStack, printJSON, printJSON, printJSON}[dm]
+func (dm debugMode) Mode() loggerFn {
+	return [...]loggerFn{printStack, printJSON, printJSON, printJSON}[dm]
 }
 
 type LoggerConfig struct {
 	Enable     bool
-	Mode       DebugMode
+	Mode       debugMode
 	BufferSize int
 }
 
-type Logger struct {
+type logger struct {
 	logChannel chan []interface{}
 	config     *LoggerConfig
 }
 
-func NewLogger(config *LoggerConfig) *Logger {
-	logger := &Logger{
+func NewLogger(config *LoggerConfig) *logger {
+	logger := &logger{
 		logChannel: make(chan []interface{}, config.BufferSize),
 		config:     config,
 	}
@@ -68,7 +68,7 @@ func NewLogger(config *LoggerConfig) *Logger {
 	return logger
 }
 
-func (l *Logger) logWorker() {
+func (l *logger) logWorker() {
 	if l.config.Enable {
 		fn := l.config.Mode.Mode()
 		for msg := range l.logChannel {
@@ -77,7 +77,7 @@ func (l *Logger) logWorker() {
 	}
 }
 
-func (l *Logger) Log(message ...interface{}) {
+func (l *logger) Log(message ...interface{}) {
 	select {
 	case l.logChannel <- message:
 	default:

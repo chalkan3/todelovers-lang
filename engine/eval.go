@@ -2,14 +2,14 @@ package engine
 
 import "fmt"
 
-type Evaluation struct{}
+type evaluation struct{}
 
-func NewEvaluation() *Evaluation { return new(Evaluation) }
+func NewEvaluation() *evaluation { return new(evaluation) }
 
-func (e *Evaluation) Eval(node Node) interface{} {
+func (e *evaluation) Eval(node Node) interface{} {
 	result := node.Eval(nil)
 	if isNewContext(node.Type()) {
-		for _, child := range node.(*FunctionCallNode).Arguments {
+		for _, child := range node.(*functionCallNode).Arguments {
 			fmt.Println(child.Eval(nil))
 		}
 	}
