@@ -13,6 +13,12 @@ func main() {
 	lexer := engine.NewLexer(dsl).Tokenize()
 	nodeFactory := engine.NewNodeFactory()
 	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(true)
-	_ = assembler
+	logger := engine.NewLogger(&engine.LoggerConfig{
+		Enable:     true,
+		Mode:       engine.Stack,
+		BufferSize: 100,
+	})
+
+	logger.Log(assembler.GetRoot())
 
 }
