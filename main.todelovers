@@ -1,26 +1,18 @@
 (tode-broadcast 
-    (def-todelovers
-        (type[igor]
-            (public
-                string#hello
-            )
-            (private
-                string#hello
-            )
-        )
-    )
+    (def-todelovers )
     (functions
-        (def-func newFunc()
-            <- (add 1 2)
+        (def-func nao -> int::var1 int::var2 | (
+                (add 24 100) 
+             <- (add 24 100) |
+            )
         )
-        (def-func add2(number#var1 number#var2)
-            <- (add var1 var2)
+        (def-func Teste -> int::var1 int::var2 string::var3 | (
+                <- (add 24 100) |
+            )   
         )
     )
     (main-frank
-        (nando-talk Hello World)
-        (add 1 10)
-        (add2 1 900)
+        (add 1 100)
     )
 )
 

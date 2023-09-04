@@ -6,17 +6,17 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 	token := value.(string)
 	switch nodeType {
 	case open_paren:
-		return &functionCallNode{T: token, Name: value.(string), Arguments: []Node{}}
+		return &openParenNode{T: token, Name: value.(string), Nodes: []Node{}}
 	case whitespace:
 		return &whiteSoaceNode{T: token}
 	case context:
-		return &functionCallNode{T: token, Name: value.(string), Arguments: []Node{}}
+		return &contextNode{T: token}
 	case newline:
 		return &newLineNode{T: token}
 	case print:
 		return &printNode{T: token}
 	case def_todelovers:
-		return &functionCallNode{T: token, Name: value.(string), Arguments: []Node{}}
+		return &defTodeLoverstNode{T: token}
 	case types:
 		return &typeNode{T: token}
 	case leftcol:
@@ -40,13 +40,15 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 	case rightarrow:
 		return &rightArrowNode{T: token}
 	case add:
-		return &functionCallNode{T: token, Name: value.(string), Arguments: []Node{}}
+		return &addNode{T: token}
 	case number:
 		return &numberNode{T: token}
 	case identifier:
 		return &identifierNode{T: token}
 	case close_paren:
 		return &closeParenNode{T: token}
+	case func_params:
+		return &functionParamNode{T: token}
 	default:
 		return &eofNode{T: token}
 	}

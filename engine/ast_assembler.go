@@ -1,6 +1,9 @@
 package engine
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type astAssembler struct {
 	root        Node
@@ -14,30 +17,38 @@ func NewASTAssembler(lexer *lexer, nodeFactory *nodeFactory) *astAssembler {
 		nodeFactory: nodeFactory,
 	}
 }
-
 func (a *astAssembler) parser(token token) Node {
-	root := a.nodeFactory.Create(token.Type, token.Value).(*functionCallNode)
+	token = ensureFirstRootToken(token, a.lexer.NextToken)
+	root := a.nodeFactory.Create(token.Type, token.Value)
 
 	for {
 		nextToken := a.lexer.NextToken()
-
-		if isWhiteSpace(nextToken.Type) {
+		if isWhiteSpace(nextToken.Type) || nextToken.Type == open_paren || nextToken.Type == identifier {
 			continue
 		}
 
-		if iseof(nextToken.Type) || isCloseParentesis(nextToken.Type) {
+		if iseof(nextToken.Type) || isCloseParentesis(nextToken.Type) || nextToken.Type == eol_func_param {
 			break
 		}
 
-		if isNewContext(nextToken.Type) {
-			root.Arguments = append(root.Arguments, a.parser(nextToken))
-		} else {
-			root.Arguments = append(root.Arguments, a.nodeFactory.Create(nextToken.Type, nextToken.Value))
-		}
+		child := a.nodeFactory.Create(nextToken.Type, nextToken.Value)
+		root.Fill(child, a.parser, nextToken, a.lexer.GetCurrentToken, a.nodeFactory, a.lexer.NextToken)
 
 	}
 
 	return root
+}
+
+func (a *astAssembler) appendFunctionCall(nextToken token, value interface{}, root Node) Node {
+	castRoot := root.(*functionCallNode)
+	if isNewContext(nextToken.Type) {
+		castRoot.Arguments = append(castRoot.Arguments, a.parser(nextToken))
+	} else {
+		castRoot.Arguments = append(castRoot.Arguments, a.nodeFactory.Create(nextToken.Type, nextToken.Value))
+	}
+
+	return castRoot
+
 }
 
 func (a *astAssembler) Assembly(debug bool) *astAssembler {
@@ -55,11 +66,13 @@ func (a *astAssembler) Assembly(debug bool) *astAssembler {
 func (a *astAssembler) GetRoot() Node { return a.root }
 
 func (a *astAssembler) debug(node Node, indent string) {
-	fmt.Printf("%sType: %s, Token: %v\n", indent, node.Type().String(), node.Token())
+	// node.Print(node.String(" "))
+	pp(node)
 
-	if isNewContext(node.Type()) {
-		for _, child := range node.(*functionCallNode).Arguments {
-			a.debug(child, indent+"  ")
-		}
-	}
+}
+
+func pp(input Node) {
+	bb, _ := json.Marshal(input)
+
+	fmt.Println(string(bb))
 }

@@ -13,24 +13,26 @@ func (t tokenType) String() string {
 		"WHITESPACE",
 		"CONTEXT",
 		"NEWLINE",
+		"IDENTIFIER",
 		"PRINT",
 		"DEF_TODELOVERS",
+		"FUNCTION_ZONE",
+		"DEF_FUNC",
+		"MAIN",
 		"TYPES",
 		"LEFTCOL",
 		"RIGHTCOL",
 		"PUBLIC",
 		"PRIVATE",
-		"hashTag",
-		"FUNCTION_ZONE",
-		"DEF_FUNC",
-		"MAIN",
+		"HASHTAG",
 		"LEFTARROE",
-		"RIGHTARROW",
+		"FUNC_PARAMS",
+		"RIGHTARROE",
 		"ADD",
 		"NUMBER",
-		"IDENTIFIER",
-		"CLOSE_PAREN",
+		"EOL_FUNC_PARAM",
 		"CALL_FUNCTION",
+		"CLOSE_PAREN",
 		"RETURNS",
 		"EOF",
 	}[t]
@@ -38,28 +40,30 @@ func (t tokenType) String() string {
 }
 
 const (
-	open_paren = iota
+	open_paren tokenType = iota
 	whitespace
 	context
 	newline
+	identifier
 	print
 	def_todelovers
+	function_zone
+	def_func
+	main
 	types
 	leftcol
 	rightcol
 	public
 	private
 	hashTag
-	function_zone
-	def_func
-	main
 	leftarroe
+	func_params
 	rightarrow
 	add
 	number
-	identifier
-	close_paren
+	eol_func_param
 	call_function
+	close_paren
 	returns
 	eof
 )
@@ -92,6 +96,13 @@ func (l *lexer) NextToken() token {
 	return token
 }
 
+func (l *lexer) GetCurrentToken() token {
+	if l.current >= len(l.tokens) {
+		return token{eof, ""}
+	}
+	return l.tokens[l.current]
+}
+
 // tokenize performs lexical analysis of the DSL and stores the tokens.
 func (l *lexer) Tokenize() *lexer {
 	tokenPatterns := []struct {
@@ -102,22 +113,24 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`[ \t]+`), whitespace},
 		{regexp.MustCompile(`tode-broadcast`), context},
 		{regexp.MustCompile(`\n`), newline},
+		{regexp.MustCompile(`\b[^(\s]+\b`), identifier},
 		{regexp.MustCompile(`nando-talk`), print},
 		{regexp.MustCompile(`def-todelovers`), def_todelovers},
+		{regexp.MustCompile(`functions`), function_zone},
+		{regexp.MustCompile(`def-func`), def_func},
+		{regexp.MustCompile(`main-frank`), main},
 		{regexp.MustCompile(`type`), types},
 		{regexp.MustCompile(`\[`), leftcol},
 		{regexp.MustCompile(`\]`), rightcol},
 		{regexp.MustCompile(`public`), public},
 		{regexp.MustCompile(`private`), private},
 		{regexp.MustCompile(`#`), hashTag},
-		{regexp.MustCompile(`functions`), function_zone},
-		{regexp.MustCompile(`def-func`), def_func},
-		{regexp.MustCompile(`main-frank`), main},
 		{regexp.MustCompile(`->`), leftarroe},
+		{regexp.MustCompile(`\w+::\w+`), func_params},
 		{regexp.MustCompile(`<-`), rightarrow},
 		{regexp.MustCompile(`add`), add},
 		{regexp.MustCompile(`\b\d+\b`), number},
-		// {regexp.MustCompile(`\b[^(\s]+\b`), identifier},
+		{regexp.MustCompile(`\|`), eol_func_param},
 		{regexp.MustCompile(`\)`), close_paren},
 	}
 
