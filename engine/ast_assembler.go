@@ -17,18 +17,28 @@ func NewASTAssembler(lexer *lexer, nodeFactory *nodeFactory) *astAssembler {
 		nodeFactory: nodeFactory,
 	}
 }
-func (a *astAssembler) parser(token token) Node {
-	token = ensureFirstRootToken(token, a.lexer.NextToken)
+
+func (a *astAssembler) createRoot(token token) Node {
+	token = jumpTokenAndGetNewTokenRoot(token, a.lexer.NextToken)
+
 	root := a.nodeFactory.Create(token.Type, token.Value)
 
+	return root
+}
+
+func (a *astAssembler) getValidNextToken() token {
+	return jumpTokenAndGetNewToken(a.lexer.NextToken(), a.lexer.NextToken)
+}
+func (a *astAssembler) fillWithChild(root Node) Node {
 	for {
-		nextToken := a.lexer.NextToken()
-		if isWhiteSpace(nextToken.Type) || nextToken.Type == open_paren || nextToken.Type == identifier {
-			continue
+		nextToken := a.getValidNextToken()
+
+		if isEOF(nextToken, root) {
+			break
 		}
 
-		if iseof(nextToken.Type) || isCloseParentesis(nextToken.Type) || nextToken.Type == eol_func_param {
-			break
+		if isNodeReturn(root) {
+			fmt.Println(nextToken)
 		}
 
 		child := a.nodeFactory.Create(nextToken.Type, nextToken.Value)
@@ -36,20 +46,13 @@ func (a *astAssembler) parser(token token) Node {
 
 	}
 
+	fmt.Printf("%#v\n", root)
+
 	return root
-}
-
-func (a *astAssembler) appendFunctionCall(nextToken token, value interface{}, root Node) Node {
-	castRoot := root.(*functionCallNode)
-	if isNewContext(nextToken.Type) {
-		castRoot.Arguments = append(castRoot.Arguments, a.parser(nextToken))
-	} else {
-		castRoot.Arguments = append(castRoot.Arguments, a.nodeFactory.Create(nextToken.Type, nextToken.Value))
-	}
-
-	return castRoot
 
 }
+
+func (a *astAssembler) parser(token token) Node { return a.fillWithChild(a.createRoot(token)) }
 
 func (a *astAssembler) Assembly(debug bool) *astAssembler {
 	root := a.parser(a.lexer.NextToken())

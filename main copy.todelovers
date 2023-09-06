@@ -1,0 +1,31 @@
+(tode-broadcast 
+    (def-todelovers)
+    (functions
+        (def-func Func -> int::var1 int::var2 |x|
+                    (add 24 1) 
+                 <- (add 24 1) 
+            ||::int
+        )
+        (def-func Teste -> int::var1 int::var2 string::var3 |x|
+                <- (add 24 2) 
+            ||::int
+        )
+    )
+    (main-frank
+        (add 1 2)
+        (set-array int::b 5 )
+        (for [i++ % (gt (len b)) % (set int::i = 0)] -> 
+                (if [(eq i 1)] ->
+                         (nando-talk (concat "im"  "first")
+                    <-
+                )
+                (nando-talk-f "count %i" i )
+            <-
+        )
+    )
+)
+
+
+
+
+

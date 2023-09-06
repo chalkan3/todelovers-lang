@@ -15,6 +15,7 @@ func main() {
 		panic(err)
 	}
 
+	symbleTable := engine.NewSymbolTable()
 	lexer := engine.NewLexer(dsl).Tokenize()
 	nodeFactory := engine.NewNodeFactory()
 	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(true)
@@ -25,6 +26,9 @@ func main() {
 	// })
 
 	root := assembler.GetRoot()
+	root.RegisterSymbols(symbleTable, nil)
+
 	fmt.Println(root.GenerateIntermediateCode())
+	engine.PrintSymbolTable(symbleTable)
 
 }

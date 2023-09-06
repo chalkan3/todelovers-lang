@@ -1,21 +1,47 @@
 package engine
 
 type symbolTable struct {
-	Functions map[string]*functionNode
-	Variables map[string]interface{}
+	currentScope *scope
 }
 
 func NewSymbolTable() *symbolTable {
+	globalScope := &scope{
+		parent:  nil,
+		symbols: make(map[string]tokenType),
+	}
 	return &symbolTable{
-		Functions: make(map[string]*functionNode),
-		Variables: make(map[string]interface{}),
+		currentScope: globalScope,
 	}
 }
 
-func (s *symbolTable) AddFunction(name string, function *functionNode) {
-	s.Functions[name] = function
+func (st *symbolTable) EnterScope() {
+	newScope := &scope{
+		parent:  st.currentScope,
+		symbols: make(map[string]tokenType),
+	}
+	st.currentScope = newScope
 }
 
-func (s *symbolTable) GetFunction(name string) *functionNode {
-	return s.Functions[name]
+func (st *symbolTable) ExitScope() {
+	st.currentScope = st.currentScope.parent
+}
+
+func (st *symbolTable) AddSymbol(name string, typ tokenType) {
+	st.currentScope.symbols[name] = typ
+}
+
+func (st *symbolTable) GetSymbolType(name string) (tokenType, bool) {
+	currentScope := st.currentScope
+	for currentScope != nil {
+		typ, found := currentScope.symbols[name]
+		if found {
+			return typ, true
+		}
+		currentScope = currentScope.parent
+	}
+	return eof, false
+}
+
+func PrintSymbolTable(symbolTable *symbolTable) {
+	printScope(symbolTable.currentScope, "")
 }

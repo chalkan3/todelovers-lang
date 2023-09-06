@@ -49,6 +49,12 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 		return &closeParenNode{T: token}
 	case func_params:
 		return &functionParamNode{T: token}
+	case body_func_init:
+		return &functionBody{T: token}
+	case str:
+		return &stringNode{T: token}
+	case body_func_eof:
+		return &returnTypeNode{T: token}
 	default:
 		return &eofNode{T: token}
 	}

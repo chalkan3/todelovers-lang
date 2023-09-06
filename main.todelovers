@@ -1,18 +1,22 @@
 (tode-broadcast 
-    (def-todelovers )
+    (def-todelovers)
     (functions
-        (def-func nao -> int::var1 int::var2 | (
-                (add 24 100) 
-             <- (add 24 100) |
-            )
+        (def-func Func -> int::var1 int::var2 |>|
+               (add 1 2) 
+            <- (add 1 2) ||::int
+         |<|
         )
-        (def-func Teste -> int::var1 int::var2 string::var3 | (
-                <- (add 24 100) |
-            )   
+        (def-func Func -> int::var1 int::var2 |>|
+               (add 1 2) 
+            <- (add 1 2) ||::int
+         |<|
         )
+       
+
     )
     (main-frank
-        (add 1 100)
+        (nando-talk "hello world")
+        (add 1 2)
     )
 )
 

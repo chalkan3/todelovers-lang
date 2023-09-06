@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -27,13 +28,19 @@ func (t tokenType) String() string {
 		"HASHTAG",
 		"LEFTARROE",
 		"FUNC_PARAMS",
-		"RIGHTARROE",
 		"ADD",
 		"NUMBER",
+		"STRING",
 		"EOL_FUNC_PARAM",
+		"BODY_FUNC_INIT",
+		"FUNC_DEFINITION_END",
 		"CALL_FUNCTION",
 		"CLOSE_PAREN",
+		"RIGHTARROW",
 		"RETURNS",
+		"BODY_FUNC_EOF",
+		"SET_VARIABLE",
+		"VARIABLE",
 		"EOF",
 	}[t]
 
@@ -58,13 +65,19 @@ const (
 	hashTag
 	leftarroe
 	func_params
-	rightarrow
 	add
 	number
+	str
 	eol_func_param
+	body_func_init
+	func_definition_end
 	call_function
 	close_paren
+	rightarrow
 	returns
+	body_func_eof
+	set_variable
+	vars
 	eof
 )
 
@@ -91,7 +104,28 @@ func (l *lexer) NextToken() token {
 		return token{eof, ""}
 	}
 	token := l.tokens[l.current]
+	fmt.Println(token)
 	l.current++
+
+	return token
+}
+
+func (l *lexer) CheckNextToken() token {
+	localCurrent := l.current
+	if localCurrent >= len(l.tokens) {
+		return token{eof, ""}
+	}
+
+	var token token
+	for {
+		token = l.tokens[localCurrent]
+
+		if !jumpToken(token) || !isTokenCloseParentesis(token) {
+			break
+		}
+
+		localCurrent++
+	}
 
 	return token
 }
@@ -112,32 +146,40 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`\(`), open_paren},
 		{regexp.MustCompile(`[ \t]+`), whitespace},
 		{regexp.MustCompile(`tode-broadcast`), context},
-		{regexp.MustCompile(`\n`), newline},
-		{regexp.MustCompile(`\b[^(\s]+\b`), identifier},
-		{regexp.MustCompile(`nando-talk`), print},
 		{regexp.MustCompile(`def-todelovers`), def_todelovers},
 		{regexp.MustCompile(`functions`), function_zone},
-		{regexp.MustCompile(`def-func`), def_func},
-		{regexp.MustCompile(`main-frank`), main},
+		{regexp.MustCompile(`\n`), newline},
+		{regexp.MustCompile(`nando-talk`), print},
+		{regexp.MustCompile(`\b[^(\s]+\b`), identifier},
 		{regexp.MustCompile(`type`), types},
 		{regexp.MustCompile(`\[`), leftcol},
 		{regexp.MustCompile(`\]`), rightcol},
 		{regexp.MustCompile(`public`), public},
 		{regexp.MustCompile(`private`), private},
 		{regexp.MustCompile(`#`), hashTag},
+		{regexp.MustCompile(`def-func`), def_func},
 		{regexp.MustCompile(`->`), leftarroe},
 		{regexp.MustCompile(`\w+::\w+`), func_params},
+		{regexp.MustCompile(`\|[ˆ>]`), eol_func_param},
+		{regexp.MustCompile(`\|>\|`), body_func_init},
 		{regexp.MustCompile(`<-`), rightarrow},
+		{regexp.MustCompile(`main-frank`), main},
 		{regexp.MustCompile(`add`), add},
 		{regexp.MustCompile(`\b\d+\b`), number},
-		{regexp.MustCompile(`\|`), eol_func_param},
+		{regexp.MustCompile(`"([^"]+)"`), str},
 		{regexp.MustCompile(`\)`), close_paren},
+		{regexp.MustCompile(`\|<\|`), func_definition_end},
+		{regexp.MustCompile(`\|\|::(\w+)`), body_func_eof},
 	}
 
 	lines := strings.Split(l.input, "\n")
 	for _, line := range lines {
 		for _, pattern := range tokenPatterns {
 			for _, match := range pattern.pattern.FindAllString(line, -1) {
+				if pattern.token == eol_func_param {
+					match = "|"
+				}
+
 				l.tokens = append(l.tokens, token{pattern.token, match})
 			}
 		}
