@@ -1,6 +1,11 @@
 package tvm
 
-type Bytecode struct {
-	Opcode   string
-	Operands [2]int
+type bytecode struct {
+	value []int64
+}
+
+func NewByteCode() *bytecode {
+	return &bytecode{
+		value: make([]int64, 0),
+	}
 }
