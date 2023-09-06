@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -40,7 +39,6 @@ func (t tokenType) String() string {
 		"RETURNS",
 		"BODY_FUNC_EOF",
 		"SET_VARIABLE",
-		"VARIABLE",
 		"EOF",
 	}[t]
 
@@ -77,7 +75,6 @@ const (
 	returns
 	body_func_eof
 	set_variable
-	vars
 	eof
 )
 
@@ -104,7 +101,6 @@ func (l *lexer) NextToken() token {
 		return token{eof, ""}
 	}
 	token := l.tokens[l.current]
-	fmt.Println(token)
 	l.current++
 
 	return token
@@ -158,6 +154,7 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`private`), private},
 		{regexp.MustCompile(`#`), hashTag},
 		{regexp.MustCompile(`def-func`), def_func},
+		{regexp.MustCompile(`var`), set_variable},
 		{regexp.MustCompile(`->`), leftarroe},
 		{regexp.MustCompile(`\w+::\w+`), func_params},
 		{regexp.MustCompile(`\|[ˆ>]`), eol_func_param},

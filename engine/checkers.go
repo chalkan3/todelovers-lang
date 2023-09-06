@@ -9,7 +9,8 @@ func isNewContext(nodeType tokenType) bool {
 		nodeType == main ||
 		nodeType == def_func ||
 		nodeType == rightarrow ||
-		nodeType == body_func_init
+		nodeType == body_func_init ||
+		nodeType == set_variable
 }
 
 func jumpToken(token token) bool {
@@ -27,7 +28,6 @@ func jumpTokenRoot(token token) bool {
 		isTokenOpenParentesis(token) ||
 		isTokenNewLine(token) ||
 		isTokenEOF(token)
-	// isTokenBodyFuncEOL(token)
 
 }
 
@@ -45,6 +45,7 @@ func isTokenDefTodeLovers(token token) bool    { return token.Type == def_todelo
 func isTokenNumber(token token) bool           { return token.Type == number }
 func isTokenMain(token token) bool             { return token.Type == main }
 func isFunctionBlockEnd(token token) bool      { return token.Type == func_definition_end }
+func isSetVariable(token token) bool           { return token.Type == set_variable }
 
 func isNodeAdd(n Node) bool           { return n.Type() == add }
 func isNodeDefFunc(n Node) bool       { return n.Type() == def_func }
@@ -56,11 +57,16 @@ func isNodeDefToadLovers(n Node) bool { return n.Type() == def_todelovers }
 func isNodeFuncParam(n Node) bool     { return n.Type() == leftarroe }
 func isNodeNumber(n Node) bool        { return n.Type() == number }
 func isNodeMain(n Node) bool          { return n.Type() == main }
+func isNodeSetVariable(n Node) bool   { return n.Type() == set_variable }
 
 func isAddEOF(token token, n Node) bool  { return isTokenCloseParentesis(token) && isNodeAdd(n) }
 func isMainEOF(token token, n Node) bool { return isTokenCloseParentesis(token) && isNodeMain(n) }
 func isFuncParamEOF(token token, n Node) bool {
 	return isTokenFuncParamEOL(token) && isNodeFuncParam(n)
+}
+
+func isSetVariableEOF(token token, n Node) bool {
+	return isTokenCloseParentesis(token) && isNodeSetVariable(n)
 }
 func isTodeBroadCastEOF(token token, n Node) bool {
 	return isTokenCloseParentesis(token) && isNodeBroadCast(n)
@@ -90,7 +96,8 @@ func isEOF(token token, n Node) bool {
 		isTodeDefTodeLoversEOF(token, n) ||
 		isFunctionBodyInitEOF(token, n) ||
 		isFuncParamEOF(token, n) ||
-		isMainEOF(token, n)
+		isMainEOF(token, n) ||
+		isSetVariableEOF(token, n)
 }
 func jumpTokenAndGetNewToken(token token, next func() token) token {
 	for {

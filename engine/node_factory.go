@@ -55,6 +55,8 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 		return &stringNode{T: token}
 	case body_func_eof:
 		return &returnTypeNode{T: token}
+	case set_variable:
+		return &setVariable{T: token}
 	default:
 		return &eofNode{T: token}
 	}

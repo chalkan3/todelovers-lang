@@ -35,7 +35,7 @@ func (nn *numberNode) Fill(n Node, parse func(token token) Node, nextToken token
 	nn.Value = number
 }
 func (nn *numberNode) GenerateIntermediateCode() string {
-	return fmt.Sprintf("INT %v", nn.Value)
+	return fmt.Sprintf("LOAD 1 %v -", nn.Value)
 }
 func (nn *numberNode) Token() string { return nn.T }
 func (nn *numberNode) String(ident string) string {
@@ -61,7 +61,7 @@ func (sn *stringNode) Fill(n Node, parse func(token token) Node, nextToken token
 	sn.Value = n.Token()
 }
 func (sn *stringNode) GenerateIntermediateCode() string {
-	return fmt.Sprintf("STRING %v", sn.Value)
+	return sn.Value
 }
 func (sn *stringNode) Token() string { return sn.T }
 func (sn *stringNode) String(ident string) string {
@@ -99,7 +99,7 @@ func (fn *functionParamNode) GenerateIntermediateCode() string {
 	variableType := strings.Split(fn.Token(), "::")
 	fn.Value = variableType[0]
 	fn.Types = variableType[1]
-	return fmt.Sprintf("PARAM %v %v ", fn.Types, fn.Value)
+	return fmt.Sprintf("%s %s ", fn.Value, fn.Types)
 }
 func (fn *functionParamNode) Token() string { return fn.T }
 func (fn *functionParamNode) String(ident string) string {
@@ -122,11 +122,16 @@ func (fn *functionNode) RegisterSymbols(symbolTable *symbolTable, currentScope *
 	currentScope.AddChildScope(functionScope)
 	currentScope = functionScope
 
-	symbolTable.AddSymbol(fn.Name, fn.Type())
+	symbolTable.AddSymbol(fmt.Sprintf("FUNCTION: %v", fn.Name), fn.Type())
 
 	for _, paramChild := range fn.Parameters {
 		paramChild.RegisterSymbols(symbolTable, currentScope)
 	}
+
+	for _, paramChild := range fn.Body {
+		paramChild.RegisterSymbols(symbolTable, currentScope)
+	}
+
 }
 func (fn *functionNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 	if n.Type() == leftarroe {
@@ -144,10 +149,9 @@ func (fn *functionNode) Fill(n Node, parse func(token token) Node, nextToken tok
 
 }
 func (fn *functionNode) GenerateIntermediateCode() string {
-	code := `
-$FUNC %s(%s)
+	code := `%s:
 %s
-FUNC$
+%s
 `
 	params := ""
 	for _, param := range fn.Parameters {
@@ -308,9 +312,8 @@ func (ct *contextNode) Fill(n Node, parse func(token token) Node, nextToken toke
 	}
 }
 func (ct *contextNode) GenerateIntermediateCode() string {
-	code := `$INIT_TODE_BROADCAST
+	code := `
 %s
-TODE_BROADCAST$
 `
 	childCode := ""
 	for _, child := range ct.Nodes {
@@ -619,9 +622,9 @@ func (r *functionZoneNode) Fill(n Node, parse func(token token) Node, nextToken 
 	}
 }
 func (r *functionZoneNode) GenerateIntermediateCode() string {
-	code := `$FUNCTION_ZONE
+	code := `
 %s
-FUNCTION_ZONE$`
+`
 	functionsCode := ""
 	for _, functions := range r.Nodes {
 		functionsCode += functions.GenerateIntermediateCode()
@@ -646,6 +649,10 @@ func (r *mainNode) Print(input string) {
 	fmt.Println(input)
 }
 func (r *mainNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
+	functionScope := NewScope()
+	currentScope.AddChildScope(functionScope)
+	currentScope = functionScope
+
 	for _, child := range r.Nodes {
 		child.RegisterSymbols(symbolTable, currentScope)
 	}
@@ -741,10 +748,12 @@ func (r *rightArrowNode) Fill(n Node, parse func(token token) Node, nextToken to
 	}
 }
 func (r *rightArrowNode) GenerateIntermediateCode() string {
-	code := "return "
+	code := ""
 	for _, param := range r.Nodes {
 		code += param.GenerateIntermediateCode()
 	}
+
+	code += "\nRETURN 3 - -"
 	return code
 }
 func (r *rightArrowNode) Token() string { return r.T }
@@ -773,7 +782,7 @@ func (r *addNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scope)
 	r.Left.RegisterSymbols(symbolTable, currentScope)
 }
 func (r *addNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-
+	n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
 	if r.Left == nil {
 		r.Left = n
 	} else {
@@ -781,7 +790,10 @@ func (r *addNode) Fill(n Node, parse func(token token) Node, nextToken token, ge
 	}
 }
 func (r *addNode) GenerateIntermediateCode() string {
-	return fmt.Sprintf("call add(%s %s)", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+	code := `%s 
+%s
+ADD 1 2 3`
+	return fmt.Sprintf(code, r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
 }
 func (r *addNode) Token() string { return r.T }
 func (r *addNode) String(ident string) string {
@@ -912,54 +924,33 @@ func (r *functionBody) Eval() interface{} {
 
 type setVariable struct {
 	T     string
-	Left  Node
 	Right Node
+	Left  Node
 }
 
-func (r *setVariable) Type() tokenType { return body_func_init }
+func (r *setVariable) Type() tokenType { return set_variable }
 func (r *setVariable) Print(input string) {
 	fmt.Println(input)
 }
 func (r *setVariable) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
+	symbolTable.AddSymbol(fmt.Sprintf("VARIABLE: %s", r.Left.Token()), r.Right.Type())
 
 }
 func (r *setVariable) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-
+	n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
+	if r.Left == nil {
+		r.Left = n
+	} else {
+		r.Right = n
+	}
 }
 func (r *setVariable) GenerateIntermediateCode() string {
-	return ""
+	return fmt.Sprintf("%s = %s \n", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
 }
 func (r *setVariable) Token() string { return r.T }
 func (r *setVariable) String(ident string) string {
 	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
 }
 func (r *setVariable) Eval() interface{} {
-	return 0
-}
-
-type variable struct {
-	T     string
-	Types string
-	Value interface{}
-}
-
-func (r *variable) Type() tokenType { return body_func_init }
-func (r *variable) Print(input string) {
-	fmt.Println(input)
-}
-func (r *variable) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
-
-}
-func (r *variable) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-
-}
-func (r *variable) GenerateIntermediateCode() string {
-	return ""
-}
-func (r *variable) Token() string { return r.T }
-func (r *variable) String(ident string) string {
-	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
-}
-func (r *variable) Eval() interface{} {
 	return 0
 }

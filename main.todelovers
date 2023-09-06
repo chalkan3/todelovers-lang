@@ -1,7 +1,7 @@
 (tode-broadcast 
     (def-todelovers)
     (functions
-        (def-func Func -> int::var1 int::var2 |>|
+        (def-func Func1 -> int::var1 int::var2 |>|
                (add 1 2) 
             <- (add 1 2) ||::int
          |<|
@@ -15,6 +15,9 @@
 
     )
     (main-frank
+        (set int::var1 "hello")
+        (set int::var2 "wolrd")
+
         (nando-talk "hello world")
         (add 1 2)
     )

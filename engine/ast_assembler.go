@@ -37,16 +37,10 @@ func (a *astAssembler) fillWithChild(root Node) Node {
 			break
 		}
 
-		if isNodeReturn(root) {
-			fmt.Println(nextToken)
-		}
-
 		child := a.nodeFactory.Create(nextToken.Type, nextToken.Value)
 		root.Fill(child, a.parser, nextToken, a.lexer.GetCurrentToken, a.nodeFactory, a.lexer.NextToken)
 
 	}
-
-	fmt.Printf("%#v\n", root)
 
 	return root
 
