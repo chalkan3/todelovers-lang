@@ -5,7 +5,16 @@ type operands struct {
 }
 
 func newOperands() *operands {
+	reg1 := newRegister()
+	reg2 := newRegister()
+	reg3 := newRegister()
+
+	reg1.value = 2
 	return &operands{
-		value: make([]*register, 0),
+		value: []*register{
+			reg1,
+			reg2,
+			reg3,
+		},
 	}
 }

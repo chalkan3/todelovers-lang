@@ -1,5 +1,7 @@
 package tvm
 
+import "fmt"
+
 type TVM struct {
 	memory      *memory
 	heap        *heap
@@ -8,7 +10,7 @@ type TVM struct {
 	pointerMap  *pointerMap
 	accumulator *accumulator
 	gc          *garbageCollector
-	pc          int64
+	pc          int
 }
 
 func NewTVM() *TVM {
@@ -35,8 +37,9 @@ func (vm *TVM) PopObjectFromStack() interface{}           { return vm.stack.Pop(
 
 // Carrega um valor de um operando.
 func (vm *TVM) LoadOperand(operand *register) {
-	operandFromMemory := vm.memory.Get(vm.pc)
+	operandFromMemory := vm.memory.Get(byte(vm.pc))
 	operand.Set(operandFromMemory)
+	vm.pc++
 }
 
 func (vm *TVM) CreatePointer(address int64) *pointer {
@@ -76,4 +79,77 @@ func (vm *TVM) GetObjectReferences(object interface{}) []int64 {
 
 	// Return the list of object references.
 	return references
+}
+
+func (vm *TVM) ExecuteInstruction(instruction byte) {
+	// Descodifica a instrução de máquina.
+	switch instruction {
+	case 0x01: // Adiciona o operando 1 ao acumulador.
+		vm.accumulator.value.value += vm.operands.value[0].value
+	case 0x02: // Subtrai o operando 1 do acumulador.
+		vm.accumulator.value.value -= vm.operands.value[0].value
+	case 0x03: // Multiplica o acumulador pelo operando 1.
+		vm.accumulator.value.value *= vm.operands.value[0].value
+	case 0x04: // Divide o acumulador pelo operando 1.
+		vm.accumulator.value.value /= vm.operands.value[0].value
+	case 0x05: // Imprime o valor do acumulador.
+		fmt.Println(vm.accumulator.value.value)
+	case 0x06:
+		vm.ExecMOV(instruction)
+	case 0x07:
+		vm.ExecLOAD(instruction)
+	default:
+		fmt.Println("Instrução de máquina desconhecida.")
+	}
+}
+
+func (vm *TVM) ExecMOV(instruction byte) {
+	// Obtém o operando 1.
+	operand1 := vm.operands.value[0]
+
+	// Obtém o registrador de destino.
+	register := byte(instruction & 0x02)
+	// Move o valor do operando 1 para o registrador de destino.
+	vm.operands.value[register] = operand1
+}
+
+func LoadCode(vm *TVM, code []byte) {
+	// Cria uma nova memória virtual para o código do programa.
+	programMemory := newMemory()
+
+	// Copia o código do programa para a memória virtual.
+	programMemory.Override(code)
+	// Executa o código do programa.
+	vm.ExecuteCode(programMemory.value)
+}
+
+func (vm *TVM) ExecuteCode(code []byte) {
+	vm.memory.Override(code)
+	// Apontador para o próximo byte de código a ser executado.
+	pc := 0
+
+	// Executa o código até que ele chegue ao fim.
+	for pc < len(vm.memory.value) {
+		// Obtém a próxima instrução de máquina.
+		instruction := vm.memory.value[pc]
+
+		// Executa a instrução de máquina.
+		vm.ExecuteInstruction(instruction)
+
+		// Avança para o próximo byte de código.
+		pc++
+	}
+
+	fmt.Println(vm.operands.value[0].value)
+}
+
+func (vm *TVM) ExecLOAD(instruction byte) {
+	// Obtém o operando 1.
+	operand1 := vm.operands.value[0]
+
+	// Obtém o registrador de destino.
+	register := byte(instruction & 0x02)
+
+	// Carrega o valor da memória no registrador.
+	vm.operands.value[register].value = vm.memory.value[operand1.value]
 }

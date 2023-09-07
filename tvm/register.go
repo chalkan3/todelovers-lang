@@ -1,11 +1,13 @@
 package tvm
 
 type register struct {
-	value int64
+	value byte
 }
 
 func newRegister() *register {
-	return new(register)
+	return &register{
+		value: 1,
+	}
 }
 
-func (reg *register) Set(operand int64) { reg.value = operand }
+func (reg *register) Set(operand byte) { reg.value = operand }

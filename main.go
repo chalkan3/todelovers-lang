@@ -31,14 +31,12 @@ func main() {
 
 	fmt.Println(root.GenerateIntermediateCode())
 
-	instructions := []tvm.Instruction{
-		{Opcode: "PUSH", Operands: [2]int{0, 10}},
-		{Opcode: "PUSH", Operands: [2]int{1, 20}},
-		{Opcode: "ADD", Operands: [2]int{0, 1}},
-	}
+	vm := tvm.NewTVM()
 
-	vm := tvm.VM{}
-	result := vm.Interpret(instructions)
-	fmt.Println(result)
+	code := []byte{0x07, 0x01, 30}
+	fmt.Println(string(code))
+	// Move o valor de R1 para o registrador R3.
+
+	tvm.LoadCode(vm, code)
 
 }

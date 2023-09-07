@@ -1,13 +1,16 @@
 package tvm
 
 type memory struct {
-	value []int64
+	value []byte
 }
 
 func newMemory() *memory {
 	return &memory{
-		value: make([]int64, 0),
+		value: []byte{},
 	}
 }
 
-func (mem *memory) Get(pc int64) int64 { return mem.value[pc] }
+func (mem *memory) Get(pc byte) byte { return mem.value[pc] }
+func (mem *memory) Override(m []byte) {
+	mem.value = m
+}
