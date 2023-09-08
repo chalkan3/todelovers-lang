@@ -13,7 +13,7 @@ type Node interface {
 	Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token)
 	RegisterSymbols(symbolTable *symbolTable, currentScope *scope)
 	Print(input string)
-	GenerateIntermediateCode() string
+	GenerateIntermediateCode() []byte
 	Token() string
 	String(ident string) string
 }
@@ -34,8 +34,8 @@ func (nn *numberNode) Fill(n Node, parse func(token token) Node, nextToken token
 	number, _ := strconv.Atoi(n.Token())
 	nn.Value = number
 }
-func (nn *numberNode) GenerateIntermediateCode() string {
-	return fmt.Sprintf("LOAD 1 %v -", nn.Value)
+func (nn *numberNode) GenerateIntermediateCode() []byte {
+	return []byte{0x07, byte(nn.Value)}
 }
 func (nn *numberNode) Token() string { return nn.T }
 func (nn *numberNode) String(ident string) string {
@@ -58,10 +58,18 @@ func (sn *stringNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sc
 
 }
 func (sn *stringNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-	sn.Value = n.Token()
+	sn.Value = strings.ReplaceAll(n.Token(), "\"", "")
 }
-func (sn *stringNode) GenerateIntermediateCode() string {
-	return sn.Value
+func (sn *stringNode) GenerateIntermediateCode() []byte {
+
+	code := []byte{0x0A, 0x02, byte(len(sn.Value))}
+	for _, c := range sn.Value {
+		code = append(code, byte(c))
+	}
+
+	code = append(code, []byte{0x08, 100, 0x02}...)
+
+	return code
 }
 func (sn *stringNode) Token() string { return sn.T }
 func (sn *stringNode) String(ident string) string {
@@ -95,11 +103,11 @@ func (fn *functionParamNode) Fill(n Node, parse func(token token) Node, nextToke
 	fn.Types = variableType[1]
 
 }
-func (fn *functionParamNode) GenerateIntermediateCode() string {
+func (fn *functionParamNode) GenerateIntermediateCode() []byte {
 	variableType := strings.Split(fn.Token(), "::")
 	fn.Value = variableType[0]
 	fn.Types = variableType[1]
-	return fmt.Sprintf("%s %s ", fn.Value, fn.Types)
+	return []byte{}
 }
 func (fn *functionParamNode) Token() string { return fn.T }
 func (fn *functionParamNode) String(ident string) string {
@@ -148,26 +156,26 @@ func (fn *functionNode) Fill(n Node, parse func(token token) Node, nextToken tok
 	fn.Name = randomString
 
 }
-func (fn *functionNode) GenerateIntermediateCode() string {
-	code := `%s:
-%s
-%s
-`
-	params := ""
-	for _, param := range fn.Parameters {
-		params += param.GenerateIntermediateCode()
-	}
+func (fn *functionNode) GenerateIntermediateCode() []byte {
+	// 	code := `%s:
+	// %s
+	// %s
+	// `
+	// 	params := []byte{}
+	// 	for _, param := range fn.Parameters {
+	// 		params += param.GenerateIntermediateCode()
+	// 	}
 
-	bodyCode := ""
+	// 	bodyCode := []byte{}
 
-	for i, body := range fn.Body {
-		bodyCode += body.GenerateIntermediateCode()
-		if i < len(fn.Body)-1 {
-			bodyCode += "\n"
-		}
-	}
+	// 	for i, body := range fn.Body {
+	// 		bodyCode += body.GenerateIntermediateCode()
+	// 		if i < len(fn.Body)-1 {
+	// 			bodyCode += "\n"
+	// 		}
+	// 	}
 
-	return fmt.Sprintf(code, fn.Name, params, bodyCode)
+	return []byte{}
 }
 func (fn *functionNode) Token() string { return fn.T }
 func (fn *functionNode) String(ident string) string {
@@ -202,14 +210,14 @@ func (fc *functionCallNode) Fill(n Node, parse func(token token) Node, nextToken
 		fc.Arguments = append(fc.Arguments, n)
 	}
 }
-func (fc *functionCallNode) GenerateIntermediateCode() string {
+func (fc *functionCallNode) GenerateIntermediateCode() []byte {
 
-	argumentsCode := ""
-	for _, child := range fc.Arguments {
-		argumentsCode += child.GenerateIntermediateCode() + " "
+	// argumentsCode := ""
+	// for _, child := range fc.Arguments {
+	// 	argumentsCode += child.GenerateIntermediateCode() + " "
 
-	}
-	return fmt.Sprintf("call %s(%s)", fc.Name, argumentsCode)
+	// }
+	return []byte{}
 }
 func (fc *functionCallNode) Token() string { return fc.T }
 func (fc *functionCallNode) String(ident string) string {
@@ -245,8 +253,8 @@ func (op *openParenNode) Fill(n Node, parse func(token token) Node, nextToken to
 	}
 
 }
-func (op *openParenNode) GenerateIntermediateCode() string {
-	return ""
+func (op *openParenNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (op *openParenNode) Token() string { return op.T }
 func (op *openParenNode) String(ident string) string {
@@ -270,8 +278,8 @@ func (w *whiteSoaceNode) RegisterSymbols(symbolTable *symbolTable, currentScope 
 func (w *whiteSoaceNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (w *whiteSoaceNode) GenerateIntermediateCode() string {
-	return ""
+func (w *whiteSoaceNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (w *whiteSoaceNode) Token() string { return w.T }
 func (w *whiteSoaceNode) String(ident string) string {
@@ -311,15 +319,23 @@ func (ct *contextNode) Fill(n Node, parse func(token token) Node, nextToken toke
 
 	}
 }
-func (ct *contextNode) GenerateIntermediateCode() string {
-	code := `
-%s
-`
-	childCode := ""
+func (ct *contextNode) GenerateIntermediateCode() []byte {
+	// 	code := `
+	// %s
+	// `
+	// 	childCode := ""
+	// 	for _, child := range ct.Nodes {
+	// 		childCode += child.GenerateIntermediateCode()
+	// 	}
+
+	c := []byte{}
 	for _, child := range ct.Nodes {
-		childCode += child.GenerateIntermediateCode()
+		c = append(c, child.GenerateIntermediateCode()...)
 	}
-	return fmt.Sprintf(code, childCode)
+
+	c = append(c, []byte{0x09}...)
+
+	return c
 }
 func (ct *contextNode) Token() string { return ct.T }
 func (ct *contextNode) String(ident string) string {
@@ -346,8 +362,9 @@ func (r *returnTypeNode) Fill(n Node, parse func(token token) Node, nextToken to
 	types := strings.Split(n.Token(), "::")
 	r.Value = types[1]
 }
-func (r *returnTypeNode) GenerateIntermediateCode() string {
-	return r.Value
+func (r *returnTypeNode) GenerateIntermediateCode() []byte {
+	// return r.Value
+	return []byte{}
 }
 func (r *returnTypeNode) Token() string { return r.T }
 func (r *returnTypeNode) String(ident string) string {
@@ -372,8 +389,8 @@ func (r *newLineNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sc
 func (r *newLineNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *newLineNode) GenerateIntermediateCode() string {
-	return ""
+func (r *newLineNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *newLineNode) Token() string { return r.T }
 func (r *newLineNode) String(ident string) string {
@@ -396,12 +413,17 @@ func (r *printNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scop
 
 }
 func (r *printNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-
+	n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
+	r.Value = n
 }
-func (r *printNode) GenerateIntermediateCode() string {
+func (r *printNode) GenerateIntermediateCode() []byte {
 	//for e coloar child
+	c := []byte{}
 
-	return fmt.Sprintf("call print(%s)", r.Token())
+	c = append(c, r.Value.GenerateIntermediateCode()...)
+	c = append(c, []byte{0x0B, 100, byte(len(r.Value.(*stringNode).Value))}...)
+
+	return c
 }
 func (r *printNode) Token() string { return r.T }
 func (r *printNode) String(ident string) string {
@@ -432,8 +454,8 @@ func (r *defTodeLoverstNode) Fill(n Node, parse func(token token) Node, nextToke
 		r.Nodes = append(r.Nodes, n)
 	}
 }
-func (r *defTodeLoverstNode) GenerateIntermediateCode() string {
-	return ""
+func (r *defTodeLoverstNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *defTodeLoverstNode) Token() string { return r.T }
 func (r *defTodeLoverstNode) String(ident string) string {
@@ -458,8 +480,8 @@ func (r *typeNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scope
 func (r *typeNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *typeNode) GenerateIntermediateCode() string {
-	return ""
+func (r *typeNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *typeNode) Token() string { return r.T }
 func (r *typeNode) String(ident string) string {
@@ -484,8 +506,8 @@ func (r *leftColNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sc
 func (r *leftColNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *leftColNode) GenerateIntermediateCode() string {
-	return ""
+func (r *leftColNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *leftColNode) Token() string { return r.T }
 func (r *leftColNode) String(ident string) string {
@@ -510,8 +532,8 @@ func (r *rightColNode) RegisterSymbols(symbolTable *symbolTable, currentScope *s
 func (r *rightColNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *rightColNode) GenerateIntermediateCode() string {
-	return ""
+func (r *rightColNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *rightColNode) Token() string { return r.T }
 func (r *rightColNode) String(ident string) string {
@@ -536,8 +558,8 @@ func (r *publicNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sco
 func (r *publicNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *publicNode) GenerateIntermediateCode() string {
-	return ""
+func (r *publicNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *publicNode) Token() string { return r.T }
 func (r *publicNode) String(ident string) string {
@@ -562,8 +584,8 @@ func (r *privateNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sc
 func (r *privateNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *privateNode) GenerateIntermediateCode() string {
-	return ""
+func (r *privateNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *privateNode) Token() string { return r.T }
 func (r *privateNode) String(ident string) string {
@@ -588,8 +610,8 @@ func (r *hashTagNode) RegisterSymbols(symbolTable *symbolTable, currentScope *sc
 func (r *hashTagNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *hashTagNode) GenerateIntermediateCode() string {
-	return ""
+func (r *hashTagNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *hashTagNode) Token() string { return r.T }
 func (r *hashTagNode) String(ident string) string {
@@ -621,15 +643,19 @@ func (r *functionZoneNode) Fill(n Node, parse func(token token) Node, nextToken 
 		r.Nodes = append(r.Nodes, n)
 	}
 }
-func (r *functionZoneNode) GenerateIntermediateCode() string {
-	code := `
-%s
-`
-	functionsCode := ""
-	for _, functions := range r.Nodes {
-		functionsCode += functions.GenerateIntermediateCode()
+func (r *functionZoneNode) GenerateIntermediateCode() []byte {
+	// 	code := `
+	// %s
+	// `
+	// 	functionsCode := ""
+	// 	for _, functions := range r.Nodes {
+	// 		functionsCode += functions.GenerateIntermediateCode()
+	// 	}
+	c := []byte{}
+	for _, child := range r.Nodes {
+		c = append(c, child.GenerateIntermediateCode()...)
 	}
-	return fmt.Sprintf(code, functionsCode)
+	return c
 }
 func (r *functionZoneNode) Token() string { return r.T }
 func (r *functionZoneNode) String(ident string) string {
@@ -664,18 +690,23 @@ func (r *mainNode) Fill(n Node, parse func(token token) Node, nextToken token, g
 		r.Nodes = append(r.Nodes, n)
 	}
 }
-func (r *mainNode) GenerateIntermediateCode() string {
-	code := `
-$MAIN_FRANK
-%s
-MAIN_FRANK$`
+func (r *mainNode) GenerateIntermediateCode() []byte {
+	// 	code := `
+	// $MAIN_FRANK
+	// %s
+	// MAIN_FRANK$`
 
-	childCode := ""
+	// 	childCode := ""
+	// 	for _, child := range r.Nodes {
+	// 		childCode += child.GenerateIntermediateCode()
+	// 	}
+
+	c := []byte{}
 	for _, child := range r.Nodes {
-		childCode += child.GenerateIntermediateCode()
+		c = append(c, child.GenerateIntermediateCode()...)
 	}
 
-	return fmt.Sprintf(code, childCode)
+	return c
 
 }
 func (r *mainNode) Token() string { return r.T }
@@ -708,13 +739,13 @@ func (r *leftArrowNode) Fill(n Node, parse func(token token) Node, nextToken tok
 		r.Nodes = append(r.Nodes, n)
 	}
 }
-func (r *leftArrowNode) GenerateIntermediateCode() string {
-	code := ""
-	for _, c := range r.Nodes {
-		code += c.GenerateIntermediateCode() + ""
-	}
+func (r *leftArrowNode) GenerateIntermediateCode() []byte {
+	// code := ""
+	// for _, c := range r.Nodes {
+	// 	code += c.GenerateIntermediateCode() + ""
+	// }
 
-	return code
+	return []byte{}
 }
 func (r *leftArrowNode) Token() string { return r.T }
 func (r *leftArrowNode) String(ident string) string {
@@ -747,14 +778,14 @@ func (r *rightArrowNode) Fill(n Node, parse func(token token) Node, nextToken to
 
 	}
 }
-func (r *rightArrowNode) GenerateIntermediateCode() string {
-	code := ""
-	for _, param := range r.Nodes {
-		code += param.GenerateIntermediateCode()
-	}
+func (r *rightArrowNode) GenerateIntermediateCode() []byte {
+	// code := ""
+	// for _, param := range r.Nodes {
+	// 	code += param.GenerateIntermediateCode()
+	// }
 
-	code += "\nRETURN 3 - -"
-	return code
+	// code += "\nRETURN 3 - -"
+	return []byte{}
 }
 func (r *rightArrowNode) Token() string { return r.T }
 func (r *rightArrowNode) String(ident string) string {
@@ -789,11 +820,12 @@ func (r *addNode) Fill(n Node, parse func(token token) Node, nextToken token, ge
 		r.Right = n
 	}
 }
-func (r *addNode) GenerateIntermediateCode() string {
-	code := `%s 
-%s
-ADD 1 2 3`
-	return fmt.Sprintf(code, r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+func (r *addNode) GenerateIntermediateCode() []byte {
+	// 	_ = `%s
+	// %s
+	// ADD 1 2 3`
+	// 	return fmt.Sprintf(code, r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+	return []byte{}
 }
 func (r *addNode) Token() string { return r.T }
 func (r *addNode) String(ident string) string {
@@ -818,8 +850,8 @@ func (r *identifierNode) RegisterSymbols(symbolTable *symbolTable, currentScope 
 func (r *identifierNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *identifierNode) GenerateIntermediateCode() string {
-	return ""
+func (r *identifierNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *identifierNode) Token() string { return r.T }
 func (r *identifierNode) String(ident string) string {
@@ -844,8 +876,8 @@ func (r *closeParenNode) RegisterSymbols(symbolTable *symbolTable, currentScope 
 func (r *closeParenNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *closeParenNode) GenerateIntermediateCode() string {
-	return ""
+func (r *closeParenNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *closeParenNode) Token() string { return r.T }
 func (r *closeParenNode) String(ident string) string {
@@ -870,8 +902,8 @@ func (r *eofNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scope)
 func (r *eofNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
 
 }
-func (r *eofNode) GenerateIntermediateCode() string {
-	return ""
+func (r *eofNode) GenerateIntermediateCode() []byte {
+	return []byte{}
 }
 func (r *eofNode) Token() string { return r.T }
 func (r *eofNode) String(ident string) string {
@@ -904,15 +936,15 @@ func (r *functionBody) Fill(n Node, parse func(token token) Node, nextToken toke
 		r.Nodes = append(r.Nodes, n)
 	}
 }
-func (r *functionBody) GenerateIntermediateCode() string {
-	code := ""
-	for i, f := range r.Nodes {
-		code += f.GenerateIntermediateCode()
-		if i < len(r.Nodes)-1 {
-			code += "\n"
-		}
-	}
-	return code
+func (r *functionBody) GenerateIntermediateCode() []byte {
+	// code := ""
+	// for i, f := range r.Nodes {
+	// 	code += f.GenerateIntermediateCode()
+	// 	if i < len(r.Nodes)-1 {
+	// 		code += "\n"
+	// 	}
+	// }
+	return []byte{}
 }
 func (r *functionBody) Token() string { return r.T }
 func (r *functionBody) String(ident string) string {
@@ -944,8 +976,9 @@ func (r *setVariable) Fill(n Node, parse func(token token) Node, nextToken token
 		r.Right = n
 	}
 }
-func (r *setVariable) GenerateIntermediateCode() string {
-	return fmt.Sprintf("%s = %s \n", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+func (r *setVariable) GenerateIntermediateCode() []byte {
+	// return fmt.Sprintf("%s = %s \n", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+	return []byte{}
 }
 func (r *setVariable) Token() string { return r.T }
 func (r *setVariable) String(ident string) string {

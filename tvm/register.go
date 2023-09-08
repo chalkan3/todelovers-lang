@@ -1,7 +1,7 @@
 package tvm
 
 type register struct {
-	value byte
+	value interface{}
 }
 
 func newRegister() *register {
@@ -10,4 +10,4 @@ func newRegister() *register {
 	}
 }
 
-func (reg *register) Set(operand byte) { reg.value = operand }
+func (reg *register) Set(operand interface{}) { reg.value = operand }

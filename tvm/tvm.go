@@ -1,27 +1,31 @@
 package tvm
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+)
 
 type TVM struct {
-	memory      *memory
-	heap        *heap
-	stack       *stack
-	operands    *operands
-	pointerMap  *pointerMap
-	accumulator *accumulator
-	gc          *garbageCollector
-	pc          int
+	memory     *memory
+	heap       *heap
+	stack      *stack
+	operands   *operands
+	pointerMap *pointerMap
+	gc         *garbageCollector
+	pc         int
 }
 
 func NewTVM() *TVM {
 
 	tvm := &TVM{
-		accumulator: newAccumulator(),
-		operands:    newOperands(),
-		memory:      newMemory(),
-		heap:        newHeap(),
-		stack:       newStack(),
-		pointerMap:  newPointerMap(),
+		pc:         0,
+		operands:   newOperands(),
+		memory:     newMemory(),
+		heap:       newHeap(),
+		stack:      newStack(),
+		pointerMap: newPointerMap(),
 	}
 
 	gc := NewGarbageCollector(tvm)
@@ -37,7 +41,7 @@ func (vm *TVM) PopObjectFromStack() interface{}           { return vm.stack.Pop(
 
 // Carrega um valor de um operando.
 func (vm *TVM) LoadOperand(operand *register) {
-	operandFromMemory := vm.memory.Get(byte(vm.pc))
+	operandFromMemory := vm.memory.Get(vm.pc)
 	operand.Set(operandFromMemory)
 	vm.pc++
 }
@@ -85,32 +89,35 @@ func (vm *TVM) ExecuteInstruction(instruction byte) {
 	// Descodifica a instrução de máquina.
 	switch instruction {
 	case 0x01: // Adiciona o operando 1 ao acumulador.
-		vm.accumulator.value.value += vm.operands.value[0].value
-	case 0x02: // Subtrai o operando 1 do acumulador.
-		vm.accumulator.value.value -= vm.operands.value[0].value
-	case 0x03: // Multiplica o acumulador pelo operando 1.
-		vm.accumulator.value.value *= vm.operands.value[0].value
-	case 0x04: // Divide o acumulador pelo operando 1.
-		vm.accumulator.value.value /= vm.operands.value[0].value
+		vm.ExecADD(instruction)
 	case 0x05: // Imprime o valor do acumulador.
-		fmt.Println(vm.accumulator.value.value)
+		vm.ExecPrint(instruction)
 	case 0x06:
 		vm.ExecMOV(instruction)
 	case 0x07:
 		vm.ExecLOAD(instruction)
-	default:
-		fmt.Println("Instrução de máquina desconhecida.")
+	case 0x08:
+		vm.ExecSTORE(instruction)
+	case 0x09:
+		vm.Halt()
+	case 0x0A:
+		vm.ExecLoadString(instruction)
+	case 0x0B:
+		vm.ExecPrintString(instruction)
 	}
 }
 
 func (vm *TVM) ExecMOV(instruction byte) {
-	// Obtém o operando 1.
-	operand1 := vm.operands.value[0]
 
-	// Obtém o registrador de destino.
-	register := byte(instruction & 0x02)
-	// Move o valor do operando 1 para o registrador de destino.
-	vm.operands.value[register] = operand1
+	fromAdress := vm.memory.Get(vm.pc + 1)
+	toAdress := vm.memory.Get(vm.pc + 2)
+
+	fromReg := vm.operands.value[fromAdress]
+	toReg := vm.operands.value[toAdress]
+
+	toReg.Set(fromReg.value)
+
+	vm.pc += 3
 }
 
 func LoadCode(vm *TVM, code []byte) {
@@ -123,33 +130,153 @@ func LoadCode(vm *TVM, code []byte) {
 	vm.ExecuteCode(programMemory.value)
 }
 
+func (vm *TVM) ExecADD(instruction byte) {
+	fromAdress := vm.memory.Get(vm.pc + 1)
+	toAdress := vm.memory.Get(vm.pc + 2)
+
+	reg1 := vm.operands.value[fromAdress]
+	reg2 := vm.operands.value[toAdress]
+
+	reg1.value = reg1.value.(int) + reg2.value.(int)
+	vm.pc += 3
+}
+
+func (vm *TVM) ExecPrint(instruction byte) {
+	memoryAddress := vm.memory.value[vm.pc+1]
+	value := vm.memory.value[memoryAddress]
+
+	fmt.Println(value)
+
+	vm.pc += 2
+}
+
+func (vm *TVM) ExecPrintString(instruction byte) {
+	initial := vm.memory.value[vm.pc+1]
+	// Get the length of the string from the instruction.
+	length := vm.memory.value[vm.pc+2]
+
+	// Create a byte slice to store the string data.
+	strData := make([]byte, length)
+
+	// Copy the string data from the instruction.
+	for i := byte(0); i < length; i++ {
+		n := initial + i
+		strData[i] = vm.memory.value[n]
+	}
+
+	str := string(strData)
+
+	fmt.Println(str)
+
+	vm.pc += 3
+}
+
+func (vm *TVM) ExecSTORE(instruction byte) {
+	saveAdress := vm.memory.Get(vm.pc + 1)
+	registerAdress := vm.memory.Get(vm.pc + 2)
+	register := vm.operands.value[registerAdress]
+
+	isSTR, ok := register.value.(string)
+	if ok {
+		for _, c := range isSTR {
+			vm.memory.Add(int(saveAdress), byte(c))
+			saveAdress++
+		}
+	} else {
+		vm.memory.Add(int(saveAdress), register.value.(byte))
+
+	}
+
+	// Increment the program counter.
+	vm.pc += 3
+}
+
+func (vm *TVM) Halt() {
+	// fmt.Println("reg:1", vm.operands.value[0].value)
+	// fmt.Println("reg:2", vm.operands.value[1].value)
+	// fmt.Println("reg:3", vm.operands.value[2].value)
+	os.Exit(0)
+}
+
 func (vm *TVM) ExecuteCode(code []byte) {
 	vm.memory.Override(code)
 	// Apontador para o próximo byte de código a ser executado.
-	pc := 0
 
 	// Executa o código até que ele chegue ao fim.
-	for pc < len(vm.memory.value) {
+	// fmt.Println("TVM MEMORY SETTED", len(vm.memory.value))
+	for vm.pc < len(vm.memory.value) {
 		// Obtém a próxima instrução de máquina.
-		instruction := vm.memory.value[pc]
-
+		instruction := vm.memory.value[vm.pc]
+		// fmt.Printf("pc = %d\t0x%02x\n", vm.pc, instruction)
 		// Executa a instrução de máquina.
 		vm.ExecuteInstruction(instruction)
-
-		// Avança para o próximo byte de código.
-		pc++
 	}
 
-	fmt.Println(vm.operands.value[0].value)
 }
 
 func (vm *TVM) ExecLOAD(instruction byte) {
-	// Obtém o operando 1.
-	operand1 := vm.operands.value[0]
+	// Get the memory address from the instruction (assuming it's a 1-byte instruction).
+	address := vm.memory.value[vm.pc+1]
 
-	// Obtém o registrador de destino.
-	register := byte(instruction & 0x02)
+	// Get the destination register from the instruction (assuming it's a 1-byte instruction).
+	register := vm.memory.value[vm.pc+2]
 
-	// Carrega o valor da memória no registrador.
-	vm.operands.value[register].value = vm.memory.value[operand1.value]
+	vm.operands.value[register].Set(address)
+	vm.pc += 3
+}
+
+func (vm *TVM) Prompt() {
+	for {
+		// Imprime um prompt para o usuário.
+		fmt.Println(">> ")
+
+		scanner := bufio.NewScanner(os.Stdin)
+
+		// Lê uma linha do usuário.
+		scanner.Scan()
+
+		// Obtém a linha do usuário.
+		line := scanner.Text()
+
+		// Se o usuário digitar "exit", saia do loop.
+		if line == "exit" {
+			break
+		}
+
+		// Converte a linha do usuário para um número inteiro.
+		instructionNumber, err := strconv.Atoi(line)
+		if err != nil {
+			fmt.Println("Erro ao converter a linha do usuário para um número inteiro:", err)
+			continue
+		}
+
+		// Executa a instrução de máquina.
+		vm.ExecuteInstruction(byte(instructionNumber))
+	}
+}
+
+func (vm *TVM) ExecLoadString(instruction byte) {
+	regNumber := vm.memory.value[vm.pc+1]
+
+	register := vm.operands.value[regNumber]
+
+	// Get the length of the string from the instruction.
+	length := vm.memory.value[vm.pc+2]
+
+	// Create a byte slice to store the string data.
+	strData := make([]byte, length)
+
+	// Copy the string data from the instruction.
+	for i := byte(0); i < length; i++ {
+		n := byte(vm.pc+3) + i
+		strData[i] = vm.memory.value[n]
+	}
+
+	// Convert the byte slice to a string.
+	str := string(strData)
+
+	// Set the string to a register (assuming you have a register available).
+	register.Set(str)
+
+	vm.pc += 3 + int(length)
 }

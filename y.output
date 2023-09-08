@@ -1,10 +1,29 @@
+(tode-broadcast 
+    (def-todelovers)
+    (functions
+        (def-func Func -> int::var1 int::var2 |>|
+               (add 1 2) 
+            <- (add 1 2) ||::int
+         |<|
+        )
+        (def-func Func -> int::var1 int::var2 |>|
+               (add 1 2) 
+            <- (add 1 2) ||::int
+         |<|
+        )
+       
 
-3 terminals, 1 nonterminals
-1 grammar rules, 0/16000 states
-0 shift/reduce, 0 reduce/reduce conflicts reported
-0 working sets used
-memory: parser 0/240000
-0 extra closures
-0 shift entries, 0 exceptions
-0 goto entries
-0 entries saved by goto default
+    )
+    (main-frank
+        (set int::var1 "hello")
+        (set int::var2 "wolrd")
+
+        (nando-talk "hello world")
+        (add 1 2)
+    )
+)
+
+
+
+
+

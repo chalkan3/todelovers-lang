@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"mary_guica/engine"
 	"mary_guica/tvm"
 )
@@ -29,13 +28,52 @@ func main() {
 	root := assembler.GetRoot()
 	root.RegisterSymbols(symbleTable, nil)
 
-	fmt.Println(root.GenerateIntermediateCode())
+	code := root.GenerateIntermediateCode()
 
 	vm := tvm.NewTVM()
 
-	code := []byte{0x07, 0x01, 30}
-	fmt.Println(string(code))
-	// Move o valor de R1 para o registrador R3.
+	// Initialize a byte slice for bytecode
+
+	// code := []byte{
+	// 	0x07, 0x04, 0x00, // LOAD 1 R0
+	// 	0x07, 0x04, 0x01, // LOAD 1 R1
+	// 	0x0A, 0x02, 0x02, 'h', 'i', // LOAD "HI" R0
+	// 	0x08, 100, 0x02,
+	// 	0x0B, 100, 0x02,
+	// 	0x09,
+	// }
+
+	// var pos int = 100
+	// for _, char := range str {
+	// 	// Convert the character to its ASCII value and add it to the bytecode
+	// 	code = append(code, 0x07)
+	// 	code = append(code, byte(char))
+	// 	code = append(code, 0x00)
+
+	// 	code = append(code, 0x08)
+	// 	code = append(code, byte(pos))
+	// 	code = append(code, 0x00)
+
+	// 	pos++
+	// }
+
+	// code = append(code, 0x09)
+
+	// var hundred byte
+	// hundred = 0x30
+
+	// for _, s := range a {
+	// 	code = append(code, 0x07)
+	// 	code = append(code, s)
+	// 	code = append(code, 0x00)
+
+	// 	code = append(code, 0x08)
+	// 	code = append(code, hundred)
+	// 	code = append(code, 0x00)
+
+	// 	hundred = hundred + 1
+
+	// }
 
 	tvm.LoadCode(vm, code)
 

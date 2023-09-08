@@ -9,7 +9,6 @@ func newOperands() *operands {
 	reg2 := newRegister()
 	reg3 := newRegister()
 
-	reg1.value = 2
 	return &operands{
 		value: []*register{
 			reg1,
