@@ -11,7 +11,8 @@ func isNewContext(nodeType tokenType) bool {
 		nodeType == rightarrow ||
 		nodeType == body_func_init ||
 		nodeType == set_variable ||
-		nodeType == print
+		nodeType == print ||
+		nodeType == get_variable
 }
 
 func jumpToken(token token) bool {
@@ -99,7 +100,8 @@ func isEOF(token token, n Node) bool {
 		isFuncParamEOF(token, n) ||
 		isMainEOF(token, n) ||
 		isSetVariableEOF(token, n) ||
-		isTokenCloseParentesis(token) && n.Type() == print
+		isTokenCloseParentesis(token) && n.Type() == print ||
+		isTokenCloseParentesis(token) && n.Type() == get_variable
 
 }
 func jumpTokenAndGetNewToken(token token, next func() token) token {

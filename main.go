@@ -40,7 +40,7 @@ func main() {
 			// Sample data as a byte slice
 
 			// Define the file path where you want to save the data
-			filePath := "lovers.todbin"
+			filePath := "todbin"
 
 			// Save the []byte to a file
 			err = ioutil.WriteFile(filePath, code, 0644)
@@ -70,7 +70,7 @@ func main() {
 	}
 
 	builCmd.Flags().String("target", "main.todelovers", "Name of file")
-	runCmd.Flags().String("bin", "main.todebin", "Name of bin")
+	runCmd.Flags().String("bin", "todbin", "Name of bin")
 
 	rootCmd.AddCommand(builCmd)
 	rootCmd.AddCommand(runCmd)

@@ -416,8 +416,12 @@ func (r *printNode) RegisterSymbols(symbolTable *symbolTable, currentScope *scop
 
 }
 func (r *printNode) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
-	n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
-	r.Value = n
+	if isNewContext(n.Type()) {
+		r.Value = parse(nextToken)
+	} else {
+		n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
+		r.Value = n
+	}
 }
 func (r *printNode) GenerateIntermediateCode() []byte {
 	//for e coloar child
@@ -995,5 +999,36 @@ func (r *setVariable) String(ident string) string {
 	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
 }
 func (r *setVariable) Eval() interface{} {
+	return 0
+}
+
+type getVariable struct {
+	T    string
+	Node Node
+}
+
+func (r *getVariable) Type() tokenType { return get_variable }
+func (r *getVariable) Print(input string) {
+	fmt.Println(input)
+}
+func (r *getVariable) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
+
+}
+func (r *getVariable) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
+	n.Fill(n, parse, nextToken, getCurrentToken, nodeFactory, getNextToken)
+	r.Node = n
+
+}
+func (r *getVariable) GenerateIntermediateCode() []byte {
+	code := []byte{0x0D, 0x02}
+	code = append(code, r.Node.GenerateIntermediateCode()...)
+	// return fmt.Sprintf("%s = %s \n", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
+	return code
+}
+func (r *getVariable) Token() string { return r.T }
+func (r *getVariable) String(ident string) string {
+	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
+}
+func (r *getVariable) Eval() interface{} {
 	return 0
 }

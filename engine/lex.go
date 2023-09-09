@@ -75,6 +75,7 @@ const (
 	returns
 	body_func_eof
 	set_variable
+	get_variable
 	eof
 )
 
@@ -153,7 +154,7 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`private`), private},
 		{regexp.MustCompile(`#`), hashTag},
 		{regexp.MustCompile(`def-func`), def_func},
-		{regexp.MustCompile(`var`), set_variable},
+		{regexp.MustCompile(`set-var`), set_variable},
 		{regexp.MustCompile(`->`), leftarroe},
 		{regexp.MustCompile(`\w+::\w+`), func_params},
 		{regexp.MustCompile(`\|[ˆ>]`), eol_func_param},
@@ -161,6 +162,7 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`<-`), rightarrow},
 		{regexp.MustCompile(`main-frank`), main},
 		{regexp.MustCompile(`nando-talk`), print},
+		{regexp.MustCompile(`get-var`), get_variable},
 		{regexp.MustCompile(`add`), add},
 		{regexp.MustCompile(`\b\d+\b`), number},
 		{regexp.MustCompile(`"([^"]+)"`), str},

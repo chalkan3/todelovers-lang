@@ -2,12 +2,8 @@
     (def-todelovers)
     (functions)
     (main-frank
-        (set int::var 2)
-        (nando-talk "Ola Todelovers")        
-        (nando-talk "Ola hrhr")
-
-
-        
+        (set-var string::var "thisvar")
+        (nando-talk (get-var "var"))        
     )
 )
 
