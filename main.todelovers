@@ -2,7 +2,12 @@
     (def-todelovers)
     (functions)
     (main-frank
-        (nando-talk "nando feii")
+        (set int::var 2)
+        (set int::var 3)
+        (set int::var 4)
+
+
+        (nando-talk "hello")
     )
 )
 

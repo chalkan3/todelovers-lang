@@ -15,6 +15,7 @@ type TVM struct {
 	pointerMap *pointerMap
 	gc         *garbageCollector
 	pc         int
+	variables  map[string]*Variable
 }
 
 func NewTVM() *TVM {
@@ -26,6 +27,7 @@ func NewTVM() *TVM {
 		heap:       newHeap(),
 		stack:      newStack(),
 		pointerMap: newPointerMap(),
+		variables:  make(map[string]*Variable),
 	}
 
 	gc := NewGarbageCollector(tvm)
@@ -102,8 +104,10 @@ func (vm *TVM) ExecuteInstruction(instruction byte) {
 		vm.Halt()
 	case 0x0A:
 		vm.ExecLoadString(instruction)
-	case 0x0B:
-		vm.ExecPrintString(instruction)
+	case 0x0C:
+		vm.ExecCreateVariable(instruction)
+	case 0x0D:
+		vm.ExecLOADFromVariable(instruction)
 	}
 }
 
@@ -142,49 +146,27 @@ func (vm *TVM) ExecADD(instruction byte) {
 }
 
 func (vm *TVM) ExecPrint(instruction byte) {
-	memoryAddress := vm.memory.value[vm.pc+1]
-	value := vm.memory.value[memoryAddress]
+	registerAddress := vm.memory.Get(vm.pc + 1)
+	reg1 := vm.operands.value[registerAddress]
 
-	fmt.Println(value)
+	fmt.Println(reg1.value)
 
 	vm.pc += 2
 }
 
-func (vm *TVM) ExecPrintString(instruction byte) {
-	initial := vm.memory.value[vm.pc+1]
-	// Get the length of the string from the instruction.
-	length := vm.memory.value[vm.pc+2]
-
-	// Create a byte slice to store the string data.
-	strData := make([]byte, length)
-
-	// Copy the string data from the instruction.
-	for i := byte(0); i < length; i++ {
-		n := initial + i
-		strData[i] = vm.memory.value[n]
-	}
-
-	str := string(strData)
-
-	fmt.Println(str)
-
-	vm.pc += 3
-}
-
 func (vm *TVM) ExecSTORE(instruction byte) {
-	saveAdress := vm.memory.Get(vm.pc + 1)
-	registerAdress := vm.memory.Get(vm.pc + 2)
-	register := vm.operands.value[registerAdress]
+	registerAdress := vm.memory.Get(vm.pc + 1)
+	saveToAdress := vm.memory.Get(vm.pc + 2)
 
+	register := vm.operands.value[registerAdress]
 	isSTR, ok := register.value.(string)
 	if ok {
 		for _, c := range isSTR {
-			vm.memory.Add(int(saveAdress), byte(c))
-			saveAdress++
+			vm.memory.Add(int(saveToAdress), byte(c))
+			saveToAdress++
 		}
 	} else {
-		vm.memory.Add(int(saveAdress), register.value.(byte))
-
+		vm.memory.Add(int(saveToAdress), register.value.(byte))
 	}
 
 	// Increment the program counter.
@@ -215,10 +197,7 @@ func (vm *TVM) ExecuteCode(code []byte) {
 }
 
 func (vm *TVM) ExecLOAD(instruction byte) {
-	// Get the memory address from the instruction (assuming it's a 1-byte instruction).
 	address := vm.memory.value[vm.pc+1]
-
-	// Get the destination register from the instruction (assuming it's a 1-byte instruction).
 	register := vm.memory.value[vm.pc+2]
 
 	vm.operands.value[register].Set(address)
@@ -279,4 +258,69 @@ func (vm *TVM) ExecLoadString(instruction byte) {
 	register.Set(str)
 
 	vm.pc += 3 + int(length)
+}
+
+func getIndexOfFirstZero(byteArray []byte) int {
+	index := -1
+
+	for i, byte := range byteArray {
+		if byte == 0x00 {
+			index = i
+			break
+		}
+	}
+
+	return index
+}
+
+func (vm *TVM) ExecCreateVariable(instruction byte) {
+	// Get the variable name length from the instruction.
+	nameLength := vm.memory.value[vm.pc+1]
+
+	// Create a byte slice to store the variable name.
+	nameBytes := make([]byte, nameLength)
+
+	// Copy the variable name from memory.
+	for i := byte(0); i < nameLength; i++ {
+		nameBytes[i] = vm.memory.value[byte(vm.pc+2)+i]
+	}
+
+	// Convert the byte slice to a string (variable name).
+	variableName := string(nameBytes)
+
+	vm.memory.value[0xC8] = 0
+
+	newVariable := NewVariable(variableName)
+
+	sizeVariables := len(vm.variables)
+	newVariable.SetAdress(0xC8 + byte(sizeVariables))
+
+	vm.variables[variableName] = newVariable
+
+	vm.pc += int(nameLength) + 2 // Adjust for the variable name length and opcode.
+}
+
+func (vm *TVM) ExecLOADFromVariable(instruction byte) {
+	// Get the memory address from the instruction (assuming it's a 1-byte instruction).
+	register := vm.memory.value[vm.pc+1]
+
+	nameLength := vm.memory.value[vm.pc+2]
+
+	// Create a byte slice to store the variable name.
+	nameBytes := make([]byte, nameLength)
+
+	// Copy the variable name from memory.
+	for i := byte(0); i < nameLength; i++ {
+		nameBytes[i] = vm.memory.value[byte(vm.pc+3)+i]
+	}
+
+	// Convert the byte slice to a string (variable name).
+	variableName := string(nameBytes)
+
+	address := vm.variables[variableName].GetAdress()
+
+	// Get the destination register from the instruction (assuming it's a 1-byte instruction).
+	memoryValue := vm.memory.value[address]
+	vm.operands.value[register].Set(memoryValue)
+	vm.pc += int(nameLength) + 3
 }

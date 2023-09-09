@@ -35,7 +35,7 @@ func (nn *numberNode) Fill(n Node, parse func(token token) Node, nextToken token
 	nn.Value = number
 }
 func (nn *numberNode) GenerateIntermediateCode() []byte {
-	return []byte{0x07, byte(nn.Value)}
+	return []byte{byte(nn.Value)}
 }
 func (nn *numberNode) Token() string { return nn.T }
 func (nn *numberNode) String(ident string) string {
@@ -62,12 +62,10 @@ func (sn *stringNode) Fill(n Node, parse func(token token) Node, nextToken token
 }
 func (sn *stringNode) GenerateIntermediateCode() []byte {
 
-	code := []byte{0x0A, 0x02, byte(len(sn.Value))}
+	code := []byte{byte(len(sn.Value))}
 	for _, c := range sn.Value {
 		code = append(code, byte(c))
 	}
-
-	code = append(code, []byte{0x08, 100, 0x02}...)
 
 	return code
 }
@@ -107,7 +105,12 @@ func (fn *functionParamNode) GenerateIntermediateCode() []byte {
 	variableType := strings.Split(fn.Token(), "::")
 	fn.Value = variableType[0]
 	fn.Types = variableType[1]
-	return []byte{}
+
+	code := []byte{byte(len(fn.Types))}
+	for _, c := range fn.Types {
+		code = append(code, byte(c))
+	}
+	return code
 }
 func (fn *functionParamNode) Token() string { return fn.T }
 func (fn *functionParamNode) String(ident string) string {
@@ -418,10 +421,10 @@ func (r *printNode) Fill(n Node, parse func(token token) Node, nextToken token, 
 }
 func (r *printNode) GenerateIntermediateCode() []byte {
 	//for e coloar child
-	c := []byte{}
+	c := []byte{0x0A, 0x02}
 
 	c = append(c, r.Value.GenerateIntermediateCode()...)
-	c = append(c, []byte{0x0B, 100, byte(len(r.Value.(*stringNode).Value))}...)
+	c = append(c, []byte{0x05, 0x02}...)
 
 	return c
 }
@@ -977,8 +980,15 @@ func (r *setVariable) Fill(n Node, parse func(token token) Node, nextToken token
 	}
 }
 func (r *setVariable) GenerateIntermediateCode() []byte {
+
+	code := []byte{0x0C}
+	code = append(code, r.Left.GenerateIntermediateCode()...)
+	code = append(code, 0x07)
+	code = append(code, r.Right.GenerateIntermediateCode()...)
+	code = append(code, []byte{0x00, 0x08, 0x00, 0xC8}...)
+
 	// return fmt.Sprintf("%s = %s \n", r.Left.GenerateIntermediateCode(), r.Right.GenerateIntermediateCode())
-	return []byte{}
+	return code
 }
 func (r *setVariable) Token() string { return r.T }
 func (r *setVariable) String(ident string) string {

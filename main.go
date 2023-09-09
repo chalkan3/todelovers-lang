@@ -1,8 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"mary_guica/engine"
 	"mary_guica/tvm"
+	"os"
+
+	"github.com/spf13/cobra"
 )
 
 // Arrumar a arvore sintaxica
@@ -10,71 +15,69 @@ import (
 // fazer a  geração de código objeto com assembly
 
 func main() {
-	dsl, err := engine.File("main.todelovers")
-	if err != nil {
-		panic(err)
+	var rootCmd = &cobra.Command{Use: "tode-lovers"}
+
+	var builCmd = &cobra.Command{
+		Use:   "build",
+		Short: "Print the version number of mycli",
+		Run: func(cmd *cobra.Command, args []string) {
+			target, _ := cmd.Flags().GetString("target")
+
+			dsl, err := engine.File(target)
+			if err != nil {
+				panic(err)
+			}
+
+			symbleTable := engine.NewSymbolTable()
+			lexer := engine.NewLexer(dsl).Tokenize()
+			nodeFactory := engine.NewNodeFactory()
+			assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(false)
+
+			root := assembler.GetRoot()
+			root.RegisterSymbols(symbleTable, nil)
+
+			code := root.GenerateIntermediateCode()
+			// Sample data as a byte slice
+
+			// Define the file path where you want to save the data
+			filePath := "lovers.todbin"
+
+			// Save the []byte to a file
+			err = ioutil.WriteFile(filePath, code, 0644)
+			if err != nil {
+				fmt.Println("Error writing file:", err)
+				return
+			}
+		},
 	}
 
-	symbleTable := engine.NewSymbolTable()
-	lexer := engine.NewLexer(dsl).Tokenize()
-	nodeFactory := engine.NewNodeFactory()
-	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(false)
-	// logger := engine.NewLogger(&engine.LoggerConfig{
-	// 	Enable:     true,
-	// 	Mode:       engine.Stack,
-	// 	BufferSize: 100,
-	// })
+	var runCmd = &cobra.Command{
+		Use:   "run",
+		Short: "Print the version number of mycli",
+		Run: func(cmd *cobra.Command, args []string) {
+			bin, _ := cmd.Flags().GetString("bin")
 
-	root := assembler.GetRoot()
-	root.RegisterSymbols(symbleTable, nil)
+			dataRead, err := ioutil.ReadFile(bin)
+			if err != nil {
+				fmt.Println("Error reading file:", err)
+				return
+			}
+			vm := tvm.NewTVM()
 
-	code := root.GenerateIntermediateCode()
+			tvm.LoadCode(vm, dataRead)
 
-	vm := tvm.NewTVM()
+		},
+	}
 
-	// Initialize a byte slice for bytecode
+	builCmd.Flags().String("target", "main.todelovers", "Name of file")
+	runCmd.Flags().String("bin", "main.todebin", "Name of bin")
 
-	// code := []byte{
-	// 	0x07, 0x04, 0x00, // LOAD 1 R0
-	// 	0x07, 0x04, 0x01, // LOAD 1 R1
-	// 	0x0A, 0x02, 0x02, 'h', 'i', // LOAD "HI" R0
-	// 	0x08, 100, 0x02,
-	// 	0x0B, 100, 0x02,
-	// 	0x09,
-	// }
+	rootCmd.AddCommand(builCmd)
+	rootCmd.AddCommand(runCmd)
 
-	// var pos int = 100
-	// for _, char := range str {
-	// 	// Convert the character to its ASCII value and add it to the bytecode
-	// 	code = append(code, 0x07)
-	// 	code = append(code, byte(char))
-	// 	code = append(code, 0x00)
-
-	// 	code = append(code, 0x08)
-	// 	code = append(code, byte(pos))
-	// 	code = append(code, 0x00)
-
-	// 	pos++
-	// }
-
-	// code = append(code, 0x09)
-
-	// var hundred byte
-	// hundred = 0x30
-
-	// for _, s := range a {
-	// 	code = append(code, 0x07)
-	// 	code = append(code, s)
-	// 	code = append(code, 0x00)
-
-	// 	code = append(code, 0x08)
-	// 	code = append(code, hundred)
-	// 	code = append(code, 0x00)
-
-	// 	hundred = hundred + 1
-
-	// }
-
-	tvm.LoadCode(vm, code)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 }
