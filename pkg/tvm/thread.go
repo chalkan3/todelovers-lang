@@ -11,6 +11,7 @@ type Thread struct {
 	pointerMap  *pointerMap
 	variables   Variables
 	done        chan bool
+	wait        chan bool
 }
 
 func NewThread(id int, interpreter Interpreter) *Thread {

@@ -23,7 +23,7 @@ func (c *print) Execute(instruction byte, threadID int, args ...interface{}) {
 	registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
 	register := c.GetCurrentThread(threadID).GetRegister(registerID)
 
-	fmt.Println(register.Value())
+	fmt.Println("from thread:", threadID, register.Value())
 
 	c.GetCurrentThread(threadID).MovePC(2)
 }
