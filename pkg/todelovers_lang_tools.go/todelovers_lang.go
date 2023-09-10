@@ -1,0 +1,91 @@
+package todelovers
+
+import (
+	"fmt"
+	"io/ioutil"
+	"mary_guica/pkg/engine"
+	"mary_guica/pkg/interpreter"
+	"mary_guica/pkg/tvm"
+)
+
+type TodeTodeLoversLangTools interface {
+	Run(bin string)
+	Build(target string)
+	GetVM() *tvm.TVM
+	GetInterpreter() tvm.Interpreter
+}
+
+type tools struct {
+	interpreter tvm.Interpreter
+	vm          *tvm.TVM
+}
+
+func (t *tools) Run(bin string) {
+
+	dataRead, err := ioutil.ReadFile(bin)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	code := []byte{
+		interpreter.LOAD, 0x01, tvm.R0,
+		interpreter.LOAD, 0x01, tvm.R1,
+		interpreter.LOAD, 0x01, tvm.R2,
+		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
+		interpreter.PRINT, tvm.R0,
+		interpreter.MOV, tvm.R0, tvm.R2, // r0=1 r1=1 r2=2
+		interpreter.PRINT, tvm.R0,
+		interpreter.ADD, tvm.R1, tvm.R2, // r0=3 r1=1 r2=2
+		interpreter.PRINT, tvm.R0,
+		interpreter.ADD, tvm.R1, tvm.R0, // r0=4 r1=1 r2=2
+		interpreter.PRINT, tvm.R0,
+		interpreter.HALT,
+	}
+
+	_ = dataRead
+	// tvm.LoadCode(vm, dataRead)
+	t.vm.LoadCode(code)
+}
+func (t *tools) Build(target string) {
+
+	dsl, err := engine.File(target)
+	if err != nil {
+		panic(err)
+	}
+
+	symbleTable := engine.NewSymbolTable()
+	lexer := engine.NewLexer(dsl).Tokenize()
+	nodeFactory := engine.NewNodeFactory()
+	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(false)
+
+	root := assembler.GetRoot()
+	root.RegisterSymbols(symbleTable, nil)
+
+	code := root.GenerateIntermediateCode()
+
+	filePath := "todbin"
+
+	err = ioutil.WriteFile(filePath, code, 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+		return
+	}
+}
+func (t *tools) GetVM() *tvm.TVM {
+	return t.vm
+}
+func (t *tools) GetInterpreter() tvm.Interpreter {
+	return t.interpreter
+}
+
+func New() TodeTodeLoversLangTools {
+	vm := tvm.NewTVM()
+	handler := interpreter.NewInterpreter(vm)
+	vm.RegisterInterpreter(handler)
+
+	return &tools{
+		vm:          vm,
+		interpreter: handler,
+	}
+}

@@ -1,0 +1,12 @@
+# goreleaser.yml
+
+project_name: todelovers_lang
+release:
+  github:
+    owner: chalkan3
+    name: todelovers-lang
+builds:
+  - main: ./main.go
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}"
+
