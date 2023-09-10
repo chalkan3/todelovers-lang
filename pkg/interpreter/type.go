@@ -10,4 +10,5 @@ var (
 	toByte      = cast.ToByte
 	toString    = cast.ToString
 	toAlwaysInt = cast.ToAlwaysInt
+	toByteArray = cast.ToByteArray
 )

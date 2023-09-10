@@ -10,7 +10,9 @@ func newMemory() *memory {
 	}
 }
 
-func (mem *memory) Get(pc int) byte        { return mem.value[pc] }
+func (mem *memory) Get(pc int) byte { return mem.value[pc] }
+func (mem *memory) Memory() []byte  { return mem.value }
+
 func (mem *memory) Set(pc int, value byte) { mem.value[pc] = value }
 
 func (mem *memory) Add(adress int, value byte) { mem.value[adress] = value }

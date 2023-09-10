@@ -14,6 +14,8 @@ const (
 	CREATE_VAR    = 0x06
 	LOAD_FROM_VAR = 0x07
 	LOAD          = 0x08
+	S_THREAD      = 0x09
+	ST_THREAD     = 0x0A
 )
 
 type interpreter struct {
@@ -32,10 +34,12 @@ func NewInterpreter(vm *tvm.TVM) tvm.Interpreter {
 			NewCreateVariable(vm),
 			NewGetFromVariable(vm),
 			NewLoad(vm),
+			NewThread(vm),
+			NewStopThread(vm),
 		},
 	}
 }
 
-func (h *interpreter) Handle(instruction byte) {
-	h.commands[instruction].Execute(instruction)
+func (h *interpreter) Handle(instruction byte, threadID int, args ...interface{}) {
+	h.commands[instruction].Execute(instruction, threadID, args...)
 }

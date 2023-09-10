@@ -17,13 +17,13 @@ func NewPrint(vm *tvm.TVM) Command {
 	}
 }
 
-func (c *print) Execute(instruction byte) {
-	arg1 := c.GetVM().PcPointer(1)
+func (c *print) Execute(instruction byte, threadID int, args ...interface{}) {
+	arg1 := c.GetCurrentThread(threadID).PcPointer(1)
 
-	registerID := c.GetVM().GetMemoryPos(arg1)
-	register := c.GetVM().GetRegister(registerID)
+	registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
+	register := c.GetCurrentThread(threadID).GetRegister(registerID)
 
 	fmt.Println(register.Value())
 
-	c.GetVM().MovePC(2)
+	c.GetCurrentThread(threadID).MovePC(2)
 }

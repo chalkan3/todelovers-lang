@@ -2,7 +2,6 @@ package interpreter
 
 import (
 	"mary_guica/pkg/tvm"
-	"os"
 )
 
 type halt struct {
@@ -17,6 +16,6 @@ func NewHalt(vm *tvm.TVM) Command {
 	}
 }
 
-func (c *halt) Execute(instruction byte) {
-	os.Exit(0)
+func (c *halt) Execute(instruction byte, threadID int, args ...interface{}) {
+	c.GetCurrentThread(threadID).SetDone()
 }

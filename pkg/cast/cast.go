@@ -6,7 +6,8 @@ func ToUInt8(cast interface{}) (uint8, bool) {
 	return c, ok
 }
 
-func ToByte(cast interface{}) byte { return cast.(byte) }
+func ToByte(cast interface{}) byte        { return cast.(byte) }
+func ToByteArray(cast interface{}) []byte { return cast.([]byte) }
 
 func ToString(cast interface{}) (string, bool) {
 	s, err := cast.(string)

@@ -31,15 +31,14 @@ func (t *tools) Run(bin string) {
 	code := []byte{
 		interpreter.LOAD, 0x01, tvm.R0,
 		interpreter.LOAD, 0x01, tvm.R1,
-		interpreter.LOAD, 0x01, tvm.R2,
 		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
 		interpreter.PRINT, tvm.R0,
-		interpreter.MOV, tvm.R0, tvm.R2, // r0=1 r1=1 r2=2
+		interpreter.S_THREAD, 0xD,
+		interpreter.LOAD, 0x01, tvm.R0,
+		interpreter.LOAD, 0x01, tvm.R1,
+		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
 		interpreter.PRINT, tvm.R0,
-		interpreter.ADD, tvm.R1, tvm.R2, // r0=3 r1=1 r2=2
-		interpreter.PRINT, tvm.R0,
-		interpreter.ADD, tvm.R1, tvm.R0, // r0=4 r1=1 r2=2
-		interpreter.PRINT, tvm.R0,
+		interpreter.ST_THREAD,
 		interpreter.HALT,
 	}
 

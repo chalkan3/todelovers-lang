@@ -14,16 +14,16 @@ func NewADD(vm *tvm.TVM) Command {
 	}
 }
 
-func (c *add) Execute(instruction byte) {
-	arg1 := c.GetVM().PcPointer(1)
-	arg2 := c.GetVM().PcPointer(2)
+func (c *add) Execute(instruction byte, threadID int, args ...interface{}) {
+	arg1 := c.GetCurrentThread(threadID).PcPointer(1)
+	arg2 := c.GetCurrentThread(threadID).PcPointer(2)
 
-	register1ID := c.GetVM().GetMemoryPos(arg1)
-	register2ID := c.GetVM().GetMemoryPos(arg2)
+	register1ID := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
+	register2ID := c.GetCurrentThread(threadID).GetMemoryPos(arg2)
 
-	reg1 := c.GetVM().GetRegister(register1ID)
-	reg2 := c.GetVM().GetRegister(register2ID)
-	reg0 := c.GetVM().GetRegister(0x00)
+	reg1 := c.GetCurrentThread(threadID).GetRegister(register1ID)
+	reg2 := c.GetCurrentThread(threadID).GetRegister(register2ID)
+	reg0 := c.GetCurrentThread(threadID).GetRegister(0x00)
 
 	v1 := toAlwaysInt(reg1.Value())
 	v2 := toAlwaysInt(reg2.Value())
@@ -31,5 +31,5 @@ func (c *add) Execute(instruction byte) {
 	sum := v1 + v2
 	reg0.Set(sum)
 
-	c.GetVM().MovePC(3)
+	c.GetCurrentThread(threadID).MovePC(3)
 }
