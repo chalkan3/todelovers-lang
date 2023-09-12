@@ -59,6 +59,10 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 		return &setVariable{T: token}
 	case get_variable:
 		return &getVariable{T: token}
+	case wait:
+		return &waitThread{T: token}
+	case thread:
+		return &newThread{T: token}
 	default:
 		return &eofNode{T: token}
 	}

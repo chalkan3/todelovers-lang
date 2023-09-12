@@ -336,7 +336,7 @@ func (ct *contextNode) GenerateIntermediateCode() []byte {
 		c = append(c, child.GenerateIntermediateCode()...)
 	}
 
-	c = append(c, []byte{0x09}...)
+	c = append(c, 0x04)
 
 	return c
 }
@@ -424,11 +424,11 @@ func (r *printNode) Fill(n Node, parse func(token token) Node, nextToken token, 
 	}
 }
 func (r *printNode) GenerateIntermediateCode() []byte {
-	//for e coloar child
-	c := []byte{0x0A, 0x02}
+	//PRINT R2
+	c := []byte{0x05, 0x02}
 
 	c = append(c, r.Value.GenerateIntermediateCode()...)
-	c = append(c, []byte{0x05, 0x02}...)
+	c = append(c, []byte{0x01, 0x02}...)
 
 	return c
 }
@@ -698,16 +698,6 @@ func (r *mainNode) Fill(n Node, parse func(token token) Node, nextToken token, g
 	}
 }
 func (r *mainNode) GenerateIntermediateCode() []byte {
-	// 	code := `
-	// $MAIN_FRANK
-	// %s
-	// MAIN_FRANK$`
-
-	// 	childCode := ""
-	// 	for _, child := range r.Nodes {
-	// 		childCode += child.GenerateIntermediateCode()
-	// 	}
-
 	c := []byte{}
 	for _, child := range r.Nodes {
 		c = append(c, child.GenerateIntermediateCode()...)
@@ -1030,5 +1020,86 @@ func (r *getVariable) String(ident string) string {
 	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
 }
 func (r *getVariable) Eval() interface{} {
+	return 0
+}
+
+type waitThread struct {
+	T     string
+	Nodes []Node
+}
+
+func (r *waitThread) Type() tokenType { return get_variable }
+func (r *waitThread) Print(input string) {
+	fmt.Println(input)
+}
+func (r *waitThread) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
+
+}
+func (r *waitThread) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
+	if isNewContext(n.Type()) {
+		r.Nodes = append(r.Nodes, parse(nextToken))
+
+	} else {
+		r.Nodes = append(r.Nodes, n)
+	}
+
+}
+func (r *waitThread) GenerateIntermediateCode() []byte {
+	code := []byte{}
+	for _, child := range r.Nodes {
+		code = append(code, child.GenerateIntermediateCode()...)
+	}
+
+	code = append(code, 0x0B)
+	return code
+}
+func (r *waitThread) Token() string { return r.T }
+func (r *waitThread) String(ident string) string {
+	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
+}
+func (r *waitThread) Eval() interface{} {
+	return 0
+}
+
+type newThread struct {
+	T     string
+	Nodes []Node
+}
+
+func (r *newThread) Type() tokenType { return get_variable }
+func (r *newThread) Print(input string) {
+	fmt.Println(input)
+}
+func (r *newThread) RegisterSymbols(symbolTable *symbolTable, currentScope *scope) {
+
+}
+func (r *newThread) Fill(n Node, parse func(token token) Node, nextToken token, getCurrentToken func() token, nodeFactory *nodeFactory, getNextToken func() token) {
+	if isNewContext(n.Type()) {
+		r.Nodes = append(r.Nodes, parse(nextToken))
+
+	} else {
+		r.Nodes = append(r.Nodes, n)
+	}
+
+}
+func (r *newThread) GenerateIntermediateCode() []byte {
+	code := []byte{0x09}
+
+	childrenCode := []byte{}
+	for _, child := range r.Nodes {
+		childrenCode = append(childrenCode, child.GenerateIntermediateCode()...)
+	}
+
+	commandSize := byte(len(childrenCode))
+	code = append(code, commandSize)
+	code = append(code, childrenCode...)
+	code = append(code, 0x0A)
+	return code
+}
+func (r *newThread) Token() string { return r.T }
+func (r *newThread) String(ident string) string {
+	return fmt.Sprintf("%sType: %s, Token: %v, Name: %s\n", ""+ident, r.Type().String(), r.Token())
+}
+func (r *newThread) Eval() interface{} {
 	return 0
 }

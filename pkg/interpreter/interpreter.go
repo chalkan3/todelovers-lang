@@ -16,13 +16,18 @@ const (
 	LOAD          = 0x08
 	S_THREAD      = 0x09
 	ST_THREAD     = 0x0A
+	W_THREAD      = 0x0B
+	SY_THREAD     = 0x0C
 )
 
+type Interpreter interface {
+	Handle(instruction byte, threadID int, args ...interface{})
+}
 type interpreter struct {
 	commands []Command
 }
 
-func NewInterpreter(vm *tvm.TVM) tvm.Interpreter {
+func NewInterpreter(vm *tvm.TVM) Interpreter {
 	return &interpreter{
 		commands: []Command{
 			NewADD(vm),
@@ -36,6 +41,7 @@ func NewInterpreter(vm *tvm.TVM) tvm.Interpreter {
 			NewLoad(vm),
 			NewThread(vm),
 			NewStopThread(vm),
+			NewWaitThread(vm),
 		},
 	}
 }

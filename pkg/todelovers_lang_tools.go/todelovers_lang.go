@@ -13,6 +13,7 @@ type TodeTodeLoversLangTools interface {
 	Build(target string)
 	GetVM() *tvm.TVM
 	GetInterpreter() tvm.Interpreter
+	BuildAndRun(target string)
 }
 
 type tools struct {
@@ -39,12 +40,13 @@ func (t *tools) Run(bin string) {
 		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
 		interpreter.PRINT, tvm.R0,
 		interpreter.ST_THREAD,
+		interpreter.W_THREAD,
 		interpreter.HALT,
 	}
 
-	_ = dataRead
-	// tvm.LoadCode(vm, dataRead)
-	t.vm.LoadCode(code)
+	_ = code
+	t.vm.LoadCode(dataRead)
+	// t.vm.LoadCode(code)
 }
 func (t *tools) Build(target string) {
 
@@ -56,7 +58,7 @@ func (t *tools) Build(target string) {
 	symbleTable := engine.NewSymbolTable()
 	lexer := engine.NewLexer(dsl).Tokenize()
 	nodeFactory := engine.NewNodeFactory()
-	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(false)
+	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(true)
 
 	root := assembler.GetRoot()
 	root.RegisterSymbols(symbleTable, nil)
@@ -70,6 +72,25 @@ func (t *tools) Build(target string) {
 		fmt.Println("Error writing file:", err)
 		return
 	}
+}
+
+func (t *tools) BuildAndRun(target string) {
+	dsl, err := engine.File(target)
+	if err != nil {
+		panic(err)
+	}
+
+	symbleTable := engine.NewSymbolTable()
+	lexer := engine.NewLexer(dsl).Tokenize()
+	nodeFactory := engine.NewNodeFactory()
+	assembler := engine.NewASTAssembler(lexer, nodeFactory).Assembly(true)
+
+	root := assembler.GetRoot()
+	root.RegisterSymbols(symbleTable, nil)
+
+	code := root.GenerateIntermediateCode()
+	t.vm.LoadCode(code)
+
 }
 func (t *tools) GetVM() *tvm.TVM {
 	return t.vm

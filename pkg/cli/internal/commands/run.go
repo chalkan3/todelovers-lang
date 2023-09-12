@@ -17,12 +17,12 @@ func (r *Run) RegisterRunFunc() *cobra.Command {
 }
 
 func (r *Run) Run(cmd *cobra.Command, args []string) {
-	bin, _ := cmd.Flags().GetString("bin")
-	todelovers.New().Run(bin)
+	target, _ := cmd.Flags().GetString("target")
+	todelovers.New().BuildAndRun(target)
 }
 
 func (r *Run) flags() {
-	r.root.Flags().String("bin", "todbin", "Name of bin")
+	r.root.Flags().String("target", "main.todelovers", "Name of bin")
 }
 
 func NewRun() Commands {

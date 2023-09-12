@@ -16,6 +16,7 @@ func (n *TodeLoverCLI) registerCommands() {
 	for _, cmd := range []commands.Commands{
 		commands.NewBuild(),
 		commands.NewRun(),
+		commands.NewStart(),
 	} {
 		n.rootCMD.AddCommand(cmd.RegisterRunFunc())
 	}

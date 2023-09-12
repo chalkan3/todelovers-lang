@@ -2,9 +2,43 @@
     (def-todelovers)
     (functions)
     (main-frank
-        (set-var string::var "thisvar")
-        (nando-talk (get-var "var"))        
+        (nando-talk "inicio")
+            (wait
+                (thread 
+                    (nando-talk "um")
+                    (wait 
+                     (thread 
+                            (nando-talk "dois")
+                        )
+                    )
+                    (nando-talk "kaka")
+
+                )   
+            )
+ 
+
+        
+            (thread 
+                (nando-talk "tes")
+            )   
+        (wait
+             (thread 
+                (nando-talk "qt")
+             )     
+        )
+
+        (thread 
+            (nando-talk "cinco")
+        )  
+
+        (nando-talk "seis")
+        (nando-talk "dsa")
+
+
+
+ 
     )
+
 )
 
 

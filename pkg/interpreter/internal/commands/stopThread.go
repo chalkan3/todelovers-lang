@@ -1,4 +1,4 @@
-package interpreter
+package commands
 
 import (
 	"mary_guica/pkg/tvm"

@@ -1,4 +1,4 @@
-package tvm
+package threads
 
 type WaitThread struct {
 	Freeze  chan bool
@@ -28,10 +28,8 @@ type Thread struct {
 	pc          int
 	parentID    int
 	interpreter Interpreter
-	heap        *heap
-	stack       *stack
-	pointerMap  *pointerMap
-	variables   Variables
+	operands    *operands
+	memory      *memory
 	state       ThreadState
 	action      *Controll
 }
@@ -42,10 +40,8 @@ func NewThread(id int, parentID int, interpreter Interpreter) *Thread {
 		id:          id,
 		pc:          0,
 		parentID:    parentID,
-		heap:        newHeap(),
-		stack:       newStack(),
-		pointerMap:  newPointerMap(),
-		variables:   NewVariables(),
+		memory:      NewMemory(),
+		operands:    newOperands(),
 		interpreter: interpreter,
 		state:       STHREAD_IDDLE,
 		action: &Controll{
@@ -64,6 +60,10 @@ func (t *Thread) LenVariables() int                         { return len(t.varia
 func (t *Thread) PcPointer(pos int) int                     { return t.pc + pos }
 func (t *Thread) GetObjectFromHeap(index int64) interface{} { return t.heap.Get(index) }
 func (t *Thread) PopObjectFromStack() interface{}           { return t.stack.Pop() }
+func (t *Thread) GetMemoryPos(pos int) byte                 { return t.memory.Get(pos) }
+func (t *Thread) GetMemory() []byte                         { return t.memory.Memory() }
+func (t *Thread) GetRegister(registerID byte) *register     { return t.operands.GetRegister(registerID) }
+func (t *Thread) OverrideMemory(memory []byte)              { t.memory.Override(memory) }
 func (t *Thread) Next()                                     { t.action.Next <- true }
 func (t *Thread) Wait() chan bool                           { return t.action.Wait.Freeze }
 func (t *Thread) Waiting() bool                             { return t.state == STHREAD_WAIT }
@@ -84,6 +84,7 @@ func (t *Thread) MovePC(increment int) {
 
 }
 
+func (t *Thread) SetMemory(adress int, value byte)            { t.memory.Add(adress, value) }
 func (t *Thread) CreateVariable(params *VariableParams)       { t.variables.NewVariable(params) }
 func (t *Thread) AddToHeap(object interface{})                { t.heap.Add(object) }
 func (t *Thread) PushObjectToStack(object interface{})        { t.stack.Push(object) }
@@ -97,6 +98,7 @@ func (t *Thread) GetID() int { return t.id }
 func (t *Thread) GetPC() int { return t.pc }
 
 func (t *Thread) Execute(code []byte) {
+	t.memory.Override(code)
 
 	for {
 		select {
@@ -109,6 +111,8 @@ func (t *Thread) Execute(code []byte) {
 			t.MovePC(1)
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING
+			instruction := t.memory.value[t.pc]
+			t.interpreter.Handle(instruction, t.id, t.pc)
 		}
 
 	}

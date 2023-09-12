@@ -1,14 +1,19 @@
-package tvm
+package threads
 
-import "fmt"
+import (
+	"fmt"
+	"mary_guica/pkg/interpreter"
+)
 
 type ThreadManager struct {
-	threads []*Thread
+	threads threadPool
+	interpreter Interpreter
 }
 
 func NewThreadManager() *ThreadManager {
 	return &ThreadManager{
 		threads: []*Thread{},
+		interpreter: New
 	}
 }
 

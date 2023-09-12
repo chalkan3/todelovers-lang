@@ -1,0 +1,27 @@
+# TVM (Todelovers Virtual Machine)
+
+The TVM (Todelovers Virtual Machine)  implementation of a virtual machine in Go (Golang). This virtual machine is designed to execute bytecode, and the bytecode can represent different types of instructions
+
+## Data Types
+
+TVM defines two main data types using the `types` type, which is an alias for `byte`. The available data types are:
+
+- `INT`: Represents an integer value.
+- `STRING`: Represents a string.
+
+## TVM Structure
+
+The TVM is built using the following structure:
+
+- `types`: Defines the supported data types.
+- `TVM`: The main structure of the virtual machine.
+  - `interpreter`: Stores the interpreter used to execute the code.
+  - `threadManager`: Manages execution threads.
+
+## TVM Initialization
+
+To create an instance of TVM, you can use the `NewTVM()` function, which returns a pointer to the newly created TVM. TVM is also initialized with a ThreadManager.
+
+```go
+tvm := NewTVM()
+```

@@ -37,6 +37,8 @@ func (t tokenType) String() string {
 		"CLOSE_PAREN",
 		"RIGHTARROW",
 		"RETURNS",
+		"WAIT",
+		"THREAD",
 		"BODY_FUNC_EOF",
 		"SET_VARIABLE",
 		"EOF",
@@ -74,6 +76,8 @@ const (
 	rightarrow
 	returns
 	body_func_eof
+	wait
+	thread
 	set_variable
 	get_variable
 	eof
@@ -161,6 +165,8 @@ func (l *lexer) Tokenize() *lexer {
 		{regexp.MustCompile(`\|>\|`), body_func_init},
 		{regexp.MustCompile(`<-`), rightarrow},
 		{regexp.MustCompile(`main-frank`), main},
+		{regexp.MustCompile(`wait`), wait},
+		{regexp.MustCompile(`thread`), thread},
 		{regexp.MustCompile(`nando-talk`), print},
 		{regexp.MustCompile(`get-var`), get_variable},
 		{regexp.MustCompile(`add`), add},
