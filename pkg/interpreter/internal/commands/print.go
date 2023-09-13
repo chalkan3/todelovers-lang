@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"mary_guica/pkg/tvm"
 )
 
@@ -18,12 +17,12 @@ func NewPrint(vm *tvm.TVM) Command {
 }
 
 func (c *print) Execute(instruction byte, threadID int, args ...interface{}) {
-	arg1 := c.GetCurrentThread(threadID).PcPointer(1)
+	// arg1 := c.GetCurrentThread(threadID).PcPointer(1)
 
-	registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
-	register := c.GetCurrentThread(threadID).GetRegister(registerID)
+	// registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
+	// register := c.GetCurrentThread(threadID).GetRegister(registerID)
 
-	fmt.Println("from thread:", threadID, register.Value())
+	// fmt.Println("from thread:", threadID, register.Value())
 
-	c.GetCurrentThread(threadID).MovePC(2)
+	// c.GetCurrentThread(threadID).MovePC(2)
 }

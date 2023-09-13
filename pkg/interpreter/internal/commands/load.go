@@ -15,14 +15,14 @@ func NewLoad(vm *tvm.TVM) Command {
 }
 
 func (c *load) Execute(instruction byte, threadID int, args ...interface{}) {
-	arg1 := c.GetCurrentThread(threadID).PcPointer(1)
-	arg2 := c.GetCurrentThread(threadID).PcPointer(2)
+	// arg1 := c.GetCurrentThread(threadID).PcPointer(1)
+	// arg2 := c.GetCurrentThread(threadID).PcPointer(2)
 
-	address := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
-	registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg2)
+	// address := c.GetCurrentThread(threadID).GetMemoryPos(arg1)
+	// registerID := c.GetCurrentThread(threadID).GetMemoryPos(arg2)
 
-	register := c.GetCurrentThread(threadID).GetRegister(registerID)
-	register.Set(address)
+	// register := c.GetCurrentThread(threadID).GetRegister(registerID)
+	// register.Set(address)
 
-	c.GetCurrentThread(threadID).MovePC(3)
+	// c.GetCurrentThread(threadID).MovePC(3)
 }

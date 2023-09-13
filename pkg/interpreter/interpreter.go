@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"mary_guica/pkg/interpreter/internal/commands"
 	"mary_guica/pkg/tvm"
 )
 
@@ -30,18 +31,18 @@ type interpreter struct {
 func NewInterpreter(vm *tvm.TVM) Interpreter {
 	return &interpreter{
 		commands: []Command{
-			NewADD(vm),
-			NewPrint(vm),
-			NewMov(vm),
-			NewStore(vm),
-			NewHalt(vm),
-			NewLoadString(vm),
-			NewCreateVariable(vm),
-			NewGetFromVariable(vm),
-			NewLoad(vm),
-			NewThread(vm),
-			NewStopThread(vm),
-			NewWaitThread(vm),
+			commands.NewADD(vm),
+			commands.NewPrint(vm),
+			commands.NewMov(vm),
+			commands.NewStore(vm),
+			commands.NewHalt(vm),
+			commands.NewLoadString(vm),
+			commands.NewCreateVariable(vm),
+			commands.NewGetFromVariable(vm),
+			commands.NewLoad(vm),
+			commands.NewThread(vm),
+			commands.NewStopThread(vm),
+			commands.NewWaitThread(vm),
 		},
 	}
 }

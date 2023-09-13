@@ -29,22 +29,21 @@ func (t *tools) Run(bin string) {
 		return
 	}
 
-	code := []byte{
-		interpreter.LOAD, 0x01, tvm.R0,
-		interpreter.LOAD, 0x01, tvm.R1,
-		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
-		interpreter.PRINT, tvm.R0,
-		interpreter.S_THREAD, 0xD,
-		interpreter.LOAD, 0x01, tvm.R0,
-		interpreter.LOAD, 0x01, tvm.R1,
-		interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
-		interpreter.PRINT, tvm.R0,
-		interpreter.ST_THREAD,
-		interpreter.W_THREAD,
-		interpreter.HALT,
-	}
+	// code := []byte{
+	// 	interpreter.LOAD, 0x01, tvm.R0,
+	// 	interpreter.LOAD, 0x01, tvm.R1,
+	// 	interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
+	// 	interpreter.PRINT, tvm.R0,
+	// 	interpreter.S_THREAD, 0xD,
+	// 	interpreter.LOAD, 0x01, tvm.R0,
+	// 	interpreter.LOAD, 0x01, tvm.R1,
+	// 	interpreter.ADD, tvm.R0, tvm.R2, // r0=2 r1=1 r2=1
+	// 	interpreter.PRINT, tvm.R0,
+	// 	interpreter.ST_THREAD,
+	// 	interpreter.W_THREAD,
+	// 	interpreter.HALT,
+	// }
 
-	_ = code
 	t.vm.LoadCode(dataRead)
 	// t.vm.LoadCode(code)
 }

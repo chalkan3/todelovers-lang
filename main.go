@@ -102,5 +102,5 @@ package main
 import "mary_guica/pkg/tvm"
 
 func main() {
-	tvm.Teste()
+	tvm.T()
 }

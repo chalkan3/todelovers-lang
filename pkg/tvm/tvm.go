@@ -20,11 +20,13 @@ func (t types) Byte() byte {
 type TVM struct {
 	interpreter   Interpreter
 	threadManager *ThreadManager
+	memoryManager memory.MemoryManager
 }
 
 func NewTVM() *TVM {
 	tvm := &TVM{
 		threadManager: NewThreadManager(),
+		memoryManager: memory.NewMemoryManager(memory.NewMemoryAllocator(1024)),
 	}
 
 	return tvm
@@ -64,7 +66,20 @@ func Teste() {
 	fmt.Println(*(*string)(ptr))
 	fmt.Println(*(*string)(ptr2))
 	fmt.Println(*(*string)(ptr))
-	manager.Free(ptr)
-	manager.Free(ptr2)
+	// manager.Free(ptr)
+	// manager.Free(ptr2)
+
+	manager.MapPage(0x0A, 0x0A)
+	manager.MapPage(0x0B, 0x0B)
+	manager.MapPage(0x0C, 0x0C)
+	id := manager.NewStack()
+
+	// manager.Push(id, 0x01)
+	// manager.Push(id, 0x03)
+
+	v1 := manager.Pop(id)
+	v2 := manager.Pop(id)
+
+	fmt.Println(v1, v2)
 
 }

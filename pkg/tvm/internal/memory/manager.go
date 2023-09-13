@@ -14,16 +14,21 @@ type MemoryManager interface {
 	Free(dst unsafe.Pointer)
 	MapHeap(heap Heap)
 	AllocateHeap(size int)
+	NewStack() int
+	Push(stackID int, value unsafe.Pointer)
+	Pop(stackID int) unsafe.Pointer
 }
 
 type memoryManager struct {
 	memoryAllocator *MemoryAllocator
 	heap            Heap
+	stack           []*Stack
 }
 
 func NewMemoryManager(memoryAllocator *MemoryAllocator) MemoryManager {
 	return &memoryManager{
 		memoryAllocator: memoryAllocator,
+		stack:           make([]*Stack, 200),
 	}
 }
 
@@ -71,4 +76,24 @@ func (mmu *memoryManager) AllocateHeap(size int) {
 	heap := mmu.memoryAllocator.AllocateHeap(size)
 	mmu.MapHeap(heap)
 	mmu.heap = heap
+}
+
+func (mmu *memoryManager) NewStack() int {
+	id := 0
+	mmu.memoryAllocator.AllocatePage()
+
+	stack := &Stack{
+		allocator: mmu.memoryAllocator,
+		top:       nil,
+	}
+	mmu.stack[id] = stack
+	return id
+}
+
+func (mmu *memoryManager) Push(stackID int, value unsafe.Pointer) {
+	mmu.stack[stackID].Push(value)
+}
+
+func (mmu *memoryManager) Pop(stackID int) unsafe.Pointer {
+	return mmu.stack[stackID].Pop()
 }

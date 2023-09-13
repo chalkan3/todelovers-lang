@@ -5,4 +5,5 @@ type Page struct {
 	frame    int
 	dirty    bool
 	accessed bool
+	next     *Page
 }

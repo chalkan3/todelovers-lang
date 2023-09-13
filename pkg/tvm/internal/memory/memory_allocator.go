@@ -28,6 +28,7 @@ func (ma *MemoryAllocator) AllocatePage() *Page {
 	frame.accessed = false
 	ma.frames[frame.frame] = *frame
 	ma.frameMap[frame.frame] = *frame
+
 	return frame
 }
 
