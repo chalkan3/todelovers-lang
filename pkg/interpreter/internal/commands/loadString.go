@@ -1,15 +1,15 @@
 package commands
 
-import "mary_guica/pkg/tvm"
+import control "mary_guica/pkg/tvm/pkg/control_plane/requester"
 
 type loadString struct {
 	*base
 }
 
-func NewLoadString(vm *tvm.TVM) Command {
+func NewLoadString(r control.FlightAttendant) Command {
 	return &loadString{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

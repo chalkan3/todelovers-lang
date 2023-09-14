@@ -1,6 +1,8 @@
 package engine
 
-type nodeFactory struct{}
+type nodeFactory struct {
+	addrGenerator *AdressGenerator
+}
 
 func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 	token := value.(string)
@@ -69,4 +71,8 @@ func (nf *nodeFactory) Create(nodeType tokenType, value interface{}) Node {
 
 }
 
-func NewNodeFactory() *nodeFactory { return new(nodeFactory) }
+func NewNodeFactory() *nodeFactory {
+	return &nodeFactory{
+		addrGenerator: NewAdressGenerator(),
+	}
+}

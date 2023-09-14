@@ -1,15 +1,15 @@
 package commands
 
-import "mary_guica/pkg/tvm"
+import control "mary_guica/pkg/tvm/pkg/control_plane/requester"
 
 type createVariable struct {
 	*base
 }
 
-func NewCreateVariable(vm *tvm.TVM) Command {
+func NewCreateVariable(r control.FlightAttendant) Command {
 	return &createVariable{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

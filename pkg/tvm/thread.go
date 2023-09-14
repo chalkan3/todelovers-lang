@@ -24,30 +24,26 @@ const (
 )
 
 type Thread struct {
-	id          int
-	pc          int
-	parentID    int
-	interpreter Interpreter
-	heap        *heap
-	stack       *stack
-	pointerMap  *pointerMap
-	variables   Variables
-	state       ThreadState
-	action      *Controll
+	id         int
+	pc         int
+	parentID   int
+	heap       *heap
+	pointerMap *pointerMap
+	variables  Variables
+	state      ThreadState
+	action     *Controll
 }
 
 func NewThread(id int, parentID int, interpreter Interpreter) *Thread {
 
 	return &Thread{
-		id:          id,
-		pc:          0,
-		parentID:    parentID,
-		heap:        newHeap(),
-		stack:       newStack(),
-		pointerMap:  newPointerMap(),
-		variables:   NewVariables(),
-		interpreter: interpreter,
-		state:       STHREAD_IDDLE,
+		id:         id,
+		pc:         0,
+		parentID:   parentID,
+		heap:       newHeap(),
+		pointerMap: newPointerMap(),
+		variables:  NewVariables(),
+		state:      STHREAD_IDDLE,
 		action: &Controll{
 			Done: make(chan bool, 1),
 			Next: make(chan bool, 1),
@@ -63,7 +59,6 @@ func (t *Thread) GetVariable(name string) *Variable         { return t.variables
 func (t *Thread) LenVariables() int                         { return len(t.variables) }
 func (t *Thread) PcPointer(pos int) int                     { return t.pc + pos }
 func (t *Thread) GetObjectFromHeap(index int64) interface{} { return t.heap.Get(index) }
-func (t *Thread) PopObjectFromStack() interface{}           { return t.stack.Pop() }
 func (t *Thread) Next()                                     { t.action.Next <- true }
 func (t *Thread) Wait() chan bool                           { return t.action.Wait.Freeze }
 func (t *Thread) Waiting() bool                             { return t.state == STHREAD_WAIT }
@@ -84,11 +79,9 @@ func (t *Thread) MovePC(increment int) {
 
 }
 
-func (t *Thread) CreateVariable(params *VariableParams)       { t.variables.NewVariable(params) }
-func (t *Thread) AddToHeap(object interface{})                { t.heap.Add(object) }
-func (t *Thread) PushObjectToStack(object interface{})        { t.stack.Push(object) }
-func (t *Thread) RegisterInterpreter(interpreter Interpreter) { t.interpreter = interpreter }
-func (t *Thread) Done() chan bool                             { return t.action.Done }
+func (t *Thread) CreateVariable(params *VariableParams) { t.variables.NewVariable(params) }
+func (t *Thread) AddToHeap(object interface{})          { t.heap.Add(object) }
+func (t *Thread) Done() chan bool                       { return t.action.Done }
 func (t *Thread) SetDone() {
 	t.action.Done <- true
 }

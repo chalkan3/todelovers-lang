@@ -61,6 +61,7 @@ func (t *tools) Build(target string) {
 
 	root := assembler.GetRoot()
 	root.RegisterSymbols(symbleTable, nil)
+	engine.PrintSymbolTable(symbleTable)
 
 	code := root.GenerateIntermediateCode()
 

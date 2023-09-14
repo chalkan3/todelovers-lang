@@ -4,14 +4,16 @@ import "fmt"
 
 type scope struct {
 	parent      *scope
-	symbols     map[string]tokenType
+	symbols     map[string]Symblo
 	childScopes []*scope
+	name        string
 }
 
-func NewScope() *scope {
+func NewScope(name string) *scope {
 	return &scope{
+		name:        name,
 		parent:      nil,
-		symbols:     make(map[string]tokenType),
+		symbols:     make(map[string]Symblo),
 		childScopes: []*scope{},
 	}
 }
@@ -23,7 +25,7 @@ func (s *scope) AddChildScope(childScope *scope) {
 }
 
 func printScope(scope *scope, indent string) {
-	fmt.Printf("%sEscopo:\n", indent)
+	fmt.Printf("%sEscopo: %s\n", indent, scope.name)
 	for symbol, typ := range scope.symbols {
 		fmt.Printf("%s%s: %s\n", indent, symbol, typ)
 	}

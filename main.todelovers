@@ -15,9 +15,6 @@
 
                 )   
             )
- 
-
-        
             (thread 
                 (nando-talk "tes")
             )   

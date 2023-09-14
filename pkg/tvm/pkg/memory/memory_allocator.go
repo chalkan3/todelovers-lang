@@ -21,13 +21,15 @@ func NewMemoryAllocator(frameCount int) *MemoryAllocator {
 	}
 }
 
-func (ma *MemoryAllocator) AllocatePage() *Page {
+func (ma *MemoryAllocator) AllocatePage(frameID int) *Page {
 	frame := ma.framePool.Get().(*Page)
+	frame.frame = frameID
 	frame.data = make([]byte, 4096)
 	frame.dirty = false
 	frame.accessed = false
 	ma.frames[frame.frame] = *frame
 	ma.frameMap[frame.frame] = *frame
+	ma.framePool.Put(frame)
 
 	return frame
 }
@@ -36,6 +38,13 @@ func (ma *MemoryAllocator) FreePage(page *Page) {
 	ma.frames[page.frame] = Page{}
 	ma.frameMap[page.frame] = Page{}
 	ma.framePool.Put(page)
+}
+
+func (ma *MemoryAllocator) AllocateStack(size int) int {
+	start := ma.framePool.Get().(*Page).frame
+	ma.framePool.Put(&ma.frames[start])
+	return start
+
 }
 
 func (ma *MemoryAllocator) AllocateHeap(size int) Heap {

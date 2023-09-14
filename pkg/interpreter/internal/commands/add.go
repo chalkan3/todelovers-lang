@@ -1,15 +1,17 @@
 package commands
 
-import "mary_guica/pkg/tvm"
+import (
+	control "mary_guica/pkg/tvm/pkg/control_plane/requester"
+)
 
 type add struct {
 	*base
 }
 
-func NewADD(vm *tvm.TVM) Command {
+func NewADD(r control.FlightAttendant) Command {
 	return &add{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

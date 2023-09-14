@@ -1,21 +1,18 @@
 package interpreter
 
-import "mary_guica/pkg/tvm"
+import (
+	"mary_guica/pkg/tvm/pkg/memory"
+)
 
 type Command interface {
 	Execute(instruction byte, threadID int, args ...interface{})
 }
 
 type base struct {
-	tvm *tvm.TVM
+	memoryManager memory.MemoryManager
+	// threadManager *threads.ThreadManager
 }
 
-func (b *base) SetVM(tvm *tvm.TVM) { b.tvm = tvm }
-func (b *base) GetVM() *tvm.TVM    { return b.tvm }
-func (b *base) GetCurrentThread(id int) *tvm.Thread {
-	return b.GetVM().GetThreadManager().GetThread(id)
-}
+func (b *base) GetMemoryManager() memory.MemoryManager { return b.memoryManager }
 
-func (b *base) GetThreadID(id int) *tvm.Thread {
-	return b.GetVM().GetThreadManager().GetThread(id)
-}
+// func (b *base) GetThreadManager() *threads.ThreadManager { return b.threadManager }

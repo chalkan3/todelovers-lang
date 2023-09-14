@@ -1,17 +1,15 @@
 package commands
 
-import (
-	"mary_guica/pkg/tvm"
-)
+import control "mary_guica/pkg/tvm/pkg/control_plane/requester"
 
 type thread struct {
 	*base
 }
 
-func NewThread(vm *tvm.TVM) Command {
+func NewThread(r control.FlightAttendant) Command {
 	return &thread{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

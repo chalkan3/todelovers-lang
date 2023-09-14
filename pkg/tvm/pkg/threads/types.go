@@ -2,8 +2,8 @@ package threads
 
 import (
 	"mary_guica/pkg/interpreter"
-	"mary_guica/pkg/tvm/internal/memory"
-	"mary_guica/pkg/tvm/internal/register"
+	"mary_guica/pkg/tvm/pkg/memory"
+	"mary_guica/pkg/tvm/pkg/register"
 )
 
 type (
@@ -14,7 +14,6 @@ type (
 )
 
 var (
-	NewInterpreter = interpreter.NewInterpreter
-	NewOperands    = register.NewOperands
-	NewMemory      = memory.NewMemory
+	NewOperands = register.NewOperands
+	NewMemory   = memory.NewMemory
 )

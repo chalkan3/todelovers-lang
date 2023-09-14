@@ -1,15 +1,15 @@
 package commands
 
-import "mary_guica/pkg/tvm"
+import control "mary_guica/pkg/tvm/pkg/control_plane/requester"
 
 type store struct {
 	*base
 }
 
-func NewStore(vm *tvm.TVM) Command {
+func NewStore(r control.FlightAttendant) Command {
 	return &store{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

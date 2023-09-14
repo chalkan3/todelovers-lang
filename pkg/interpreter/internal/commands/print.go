@@ -1,17 +1,15 @@
 package commands
 
-import (
-	"mary_guica/pkg/tvm"
-)
+import control "mary_guica/pkg/tvm/pkg/control_plane/requester"
 
 type print struct {
 	*base
 }
 
-func NewPrint(vm *tvm.TVM) Command {
+func NewPrint(r control.FlightAttendant) Command {
 	return &print{
 		&base{
-			tvm: vm,
+			requester: r,
 		},
 	}
 }

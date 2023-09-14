@@ -1,21 +1,15 @@
 package commands
 
-import "mary_guica/pkg/tvm"
+import (
+	control "mary_guica/pkg/tvm/pkg/control_plane/requester"
+)
 
 type Command interface {
 	Execute(instruction byte, threadID int, args ...interface{})
 }
 
 type base struct {
-	tvm *tvm.TVM
+	requester control.FlightAttendant
 }
 
-func (b *base) SetVM(tvm *tvm.TVM) { b.tvm = tvm }
-func (b *base) GetVM() *tvm.TVM    { return b.tvm }
-func (b *base) GetCurrentThread(id int) *tvm.Thread {
-	return b.GetVM().GetThreadManager().GetThread(id)
-}
-
-func (b *base) GetThreadID(id int) *tvm.Thread {
-	return b.GetVM().GetThreadManager().GetThread(id)
-}
+func (b *base) Request(fn interface{}) { b.requester.Request(fn) }

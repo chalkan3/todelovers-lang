@@ -14,21 +14,20 @@ type MemoryManager interface {
 	Free(dst unsafe.Pointer)
 	MapHeap(heap Heap)
 	AllocateHeap(size int)
-	NewStack() int
-	Push(stackID int, value unsafe.Pointer)
-	Pop(stackID int) unsafe.Pointer
+	AllocateStack(size int)
+	Stack() *Stack
 }
 
 type memoryManager struct {
 	memoryAllocator *MemoryAllocator
 	heap            Heap
-	stack           []*Stack
+	stack           *Stack
 }
 
 func NewMemoryManager(memoryAllocator *MemoryAllocator) MemoryManager {
 	return &memoryManager{
 		memoryAllocator: memoryAllocator,
-		stack:           make([]*Stack, 200),
+		stack:           NewStack(memoryAllocator),
 	}
 }
 
@@ -45,8 +44,7 @@ func (mmu *memoryManager) Free(dst unsafe.Pointer) {
 }
 
 func (mmu *memoryManager) MapPage(virtualAddress int, physicalAddress int) {
-	page := mmu.memoryAllocator.AllocatePage()
-	page.frame = physicalAddress
+	page := mmu.memoryAllocator.AllocatePage(physicalAddress)
 	mmu.memoryAllocator.frames[physicalAddress] = *page
 }
 
@@ -74,26 +72,13 @@ func (mmu *memoryManager) MapHeap(heap Heap) {
 
 func (mmu *memoryManager) AllocateHeap(size int) {
 	heap := mmu.memoryAllocator.AllocateHeap(size)
-	mmu.MapHeap(heap)
 	mmu.heap = heap
 }
 
-func (mmu *memoryManager) NewStack() int {
-	id := 0
-	mmu.memoryAllocator.AllocatePage()
-
-	stack := &Stack{
-		allocator: mmu.memoryAllocator,
-		top:       nil,
-	}
-	mmu.stack[id] = stack
-	return id
+func (mmu *memoryManager) AllocateStack(size int) {
+	mmu.memoryAllocator.AllocateStack(size)
 }
 
-func (mmu *memoryManager) Push(stackID int, value unsafe.Pointer) {
-	mmu.stack[stackID].Push(value)
-}
-
-func (mmu *memoryManager) Pop(stackID int) unsafe.Pointer {
-	return mmu.stack[stackID].Pop()
+func (mmu *memoryManager) Stack() *Stack {
+	return mmu.stack
 }
