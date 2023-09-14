@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"fmt"
 	"mary_guica/pkg/interpreter"
 	requester "mary_guica/pkg/tvm/pkg/control_plane/requester"
 	"mary_guica/pkg/tvm/pkg/program"
@@ -35,16 +36,17 @@ func NewRunner(id int, f requester.FlightAttendant, i interpreter.Interpreter) R
 
 func (m *runner) Run(threadID int, args ...interface{}) {
 	var instruction byte
-	var pc int
+	fmt.Println("estouAqui")
+
 	m.flightAttendant.Request(func(pm program.ProgramManager) interface{} {
 		// change it !!!!!!!!!!!!
-		if threadID == -1 {
+		if threadID == 1 {
 			instruction = pm.Instruction()
-			pc = pm.Current()
 		} else {
 			instruction = pm.Instruction(byte(threadID))
-			pc = pm.Current(byte(threadID))
 		}
+
+		fmt.Println("aqui", instruction)
 
 		return nil
 	})

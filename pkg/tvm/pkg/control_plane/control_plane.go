@@ -1,5 +1,7 @@
 package control
 
+// Verificar o paradeiro do id -1
+
 import (
 	"fmt"
 	"mary_guica/pkg/interpreter"
@@ -8,7 +10,6 @@ import (
 	"mary_guica/pkg/tvm/pkg/program"
 	"mary_guica/pkg/tvm/pkg/runner"
 	"mary_guica/pkg/tvm/pkg/threads"
-	"reflect"
 	"time"
 )
 
@@ -68,19 +69,32 @@ func (cp *controlPlane) Context(id int, parent int, code []byte) {
 	flightAttendant := cp.crew.Get(id)
 	interpreter := interpreter.NewInterpreter(flightAttendant)
 	runner := cp.RunnerManager().NewRunner(id, flightAttendant, interpreter)
-	thread := cp.ThreadManager().NewThread(id, parent, runner)
-	thread.Execute()
+	thread := cp.ThreadManager().NewThread(id, parent)
+	thread.Next()
+	thread.Execute(runner.Run)
 
 }
 
 func (cp *controlPlane) Requester() {
-	crew := cp.crew.PrepareCrew()
+	// crew :=
 	for {
 		select {
-		case channelID := <-crew:
+		case channelID := <-cp.crew.PrepareCrew():
 			fn := <-cp.crew.Get(channelID).WaitForRequest()
-			v := reflect.ValueOf(fn)
-			v.Call([]reflect.Value{reflect.ValueOf(cp.MemoryManager())})
+
+			if fn, ok := fn.(func(program.ProgramManager) interface{}); ok {
+				fn(cp.ProgramManager())
+			}
+
+			if fn, ok := fn.(func(memory.MemoryManager) interface{}); ok {
+				fn(cp.MemoryManager())
+			}
+
+			if fn, ok := fn.(func(threads.ThreadManager) interface{}); ok {
+				fn(cp.ThreadManager())
+			}
+
+			// cp.crew.Get(channelID).Response()
 
 		case <-time.After(2 * time.Second):
 			fmt.Println("Timeout: No data received in 2 seconds.")

@@ -1,7 +1,10 @@
 package commands
 
 import (
+	"fmt"
 	control "mary_guica/pkg/tvm/pkg/control_plane/requester"
+	"mary_guica/pkg/tvm/pkg/program"
+	"mary_guica/pkg/tvm/pkg/threads"
 )
 
 type add struct {
@@ -17,6 +20,17 @@ func NewADD(r control.FlightAttendant) Command {
 }
 
 func (c *add) Execute(instruction byte, threadID int, args ...interface{}) {
+	fmt.Println("executei")
+	c.Request(func(pm program.ProgramManager) interface{} {
+		pm.Next()
+		fmt.Println(pm.Instruction())
+		return nil
+	})
+
+	c.Request(func(pm threads.ThreadManager) interface{} {
+		pm.GetThread(threadID).Next()
+		return nil
+	})
 	// arg1 := c.GetCurrentThread(threadID).PcPointer(1)
 	// arg2 := c.GetCurrentThread(threadID).PcPointer(2)
 

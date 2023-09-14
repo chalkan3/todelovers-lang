@@ -34,7 +34,7 @@ type Thread struct {
 	action     *Controll
 }
 
-func NewThread(id int, parentID int, interpreter Interpreter) *Thread {
+func NewThread(id int, parentID int) *Thread {
 
 	return &Thread{
 		id:         id,
@@ -102,6 +102,7 @@ func (t *Thread) Execute(code []byte) {
 			t.MovePC(1)
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING
+
 		}
 
 	}

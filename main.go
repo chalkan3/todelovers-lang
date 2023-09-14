@@ -99,17 +99,21 @@
 // }
 package main
 
-import (
-	"fmt"
-	control "mary_guica/pkg/tvm/pkg/control_plane"
-	e "mary_guica/pkg/tvm/pkg/environment"
-	"mary_guica/pkg/tvm/pkg/runtime"
-	r "mary_guica/pkg/tvm/pkg/runtime"
-
-	"time"
-)
+import "mary_guica/pkg/tvm"
 
 func main() {
+	vm := tvm.NewTVM(&tvm.ControlPlaneConfiguration{
+		MemoryManager: tvm.MemoryManagerConfig{
+			FrameSize: 1024,
+		},
+		ThreadManager: tvm.ThreadManagerConfig{},
+		ProgramManager: tvm.ProgramManagerConfig{
+			Code: []byte{0x1, 0x05},
+		},
+	})
+
+	vm.ExecuteCode([]byte{0x1, 0x05})
+
 	// tvm.T()
 	// dsl, err := engine.File("main.todelovers")
 	// if err != nil {
@@ -126,94 +130,94 @@ func main() {
 
 	// engine.PrintByteCode(root.GenerateIntermediateCode(symbleTable))
 
-	ch := make(chan interface{})
-	run := r.NewRuntime(ch, control.NewControlPlane(&control.ControlPlaneConfiguration{
-		MemoryManager: control.MemoryManagerConfig{
-			FrameSize: 1024,
-		},
-		ProgramManager: control.ProgramManagerConfig{
-			Code: []byte{1, 2},
-		},
-	}))
-	env := e.NewEnvironment(ch)
-	go run.Requester()
+	// 	ch := make(chan interface{})
+	// 	run := r.NewRuntime(ch, control.NewControlPlane(&control.ControlPlaneConfiguration{
+	// 		MemoryManager: control.MemoryManagerConfig{
+	// 			FrameSize: 1024,
+	// 		},
+	// 		ProgramManager: control.ProgramManagerConfig{
+	// 			Code: []byte{1, 2},
+	// 		},
+	// 	}))
+	// 	env := e.NewEnvironment(ch)
+	// 	go run.Requester()
 
-	go func() {
-		env.M(func(m r.MemoryManager) {
-			m.AllocateStack(1000)
-			stack := m.Stack()
-			stack.Push([]byte("hellllloooooow"))
-			stack.Push([]byte("wooooooords"))
-		})
-	}()
-	for {
-		time.Sleep(5 * time.Second)
-		env.M(func(m r.MemoryManager) {
-			data, _ := m.Stack().Pop()
+	// 	go func() {
+	// 		env.M(func(m r.MemoryManager) {
+	// 			m.AllocateStack(1000)
+	// 			stack := m.Stack()
+	// 			stack.Push([]byte("hellllloooooow"))
+	// 			stack.Push([]byte("wooooooords"))
+	// 		})
+	// 	}()
+	// 	for {
+	// 		time.Sleep(5 * time.Second)
+	// 		env.M(func(m r.MemoryManager) {
+	// 			data, _ := m.Stack().Pop()
 
-			fmt.Println(string(data))
-		})
+	// 			fmt.Println(string(data))
+	// 		})
 
-	}
+	// 	}
 
-	ch1 := make(chan int)
-	cho1 := make(chan e.Output)
+	// 	ch1 := make(chan int)
+	// 	cho1 := make(chan e.Output)
 
-	ch2 := make(chan int)
-	cho2 := make(chan e.Output)
+	// 	ch2 := make(chan int)
+	// 	cho2 := make(chan e.Output)
 
-	ch3 := make(chan int)
-	cho3 := make(chan e.Output)
+	// 	ch3 := make(chan int)
+	// 	cho3 := make(chan e.Output)
 
-	go sendData(ch1, 2, 5)
-	go sendData(ch1, 4, 5)
-	go sendData(ch1, 7, 5)
-	go sendData(ch1, 6, 5)
+	// 	go sendData(ch1, 2, 5)
+	// 	go sendData(ch1, 4, 5)
+	// 	go sendData(ch1, 7, 5)
+	// 	go sendData(ch1, 6, 5)
 
-	go sendData(ch2, 2, 3)
-	go sendData(ch3, 5, 10)
+	// 	go sendData(ch2, 2, 3)
+	// 	go sendData(ch3, 5, 10)
 
-	r := runtime.NewNotifier()
-	r.RegisterWatcher(1, &runtime.RuntimeRunCommandWatcher{})
+	// 	r := runtime.NewNotifier()
+	// 	r.RegisterWatcher(1, &runtime.RuntimeRunCommandWatcher{})
 
-	go func() {
-		for {
-			select {
-			case o := <-cho1:
-				r.NotifyWatchers(1, 1)
-				fmt.Println(o.Value)
-			case o := <-cho2:
-				fmt.Println(o.Value)
-			case o := <-cho3:
-				fmt.Println(o.Value)
+	// 	go func() {
+	// 		for {
+	// 			select {
+	// 			case o := <-cho1:
+	// 				r.NotifyWatchers(1, 1)
+	// 				fmt.Println(o.Value)
+	// 			case o := <-cho2:
+	// 				fmt.Println(o.Value)
+	// 			case o := <-cho3:
+	// 				fmt.Println(o.Value)
 
-			}
-		}
-	}()
+	// 			}
+	// 		}
+	// 	}()
 
-	e.Teste(map[int]e.Input{
-		1: {
-			Id:  1,
-			In:  ch1,
-			Out: cho1,
-		},
-		2: {
-			Id:  2,
-			In:  ch2,
-			Out: cho2,
-		},
-		3: {
-			Id:  3,
-			In:  ch3,
-			Out: cho3,
-		},
-	})
-}
+	// 	e.Teste(map[int]e.Input{
+	// 		1: {
+	// 			Id:  1,
+	// 			In:  ch1,
+	// 			Out: cho1,
+	// 		},
+	// 		2: {
+	// 			Id:  2,
+	// 			In:  ch2,
+	// 			Out: cho2,
+	// 		},
+	// 		3: {
+	// 			Id:  3,
+	// 			In:  ch3,
+	// 			Out: cho3,
+	// 		},
+	// 	})
+	// }
 
-func sendData(ch chan int, data int, s int64) {
-	for {
-		time.Sleep(time.Duration(s) * time.Second)
-		ch <- data
-	}
+	// func sendData(ch chan int, data int, s int64) {
+	// 	for {
+	// 		time.Sleep(time.Duration(s) * time.Second)
+	// 		ch <- data
+	// 	}
 
 }

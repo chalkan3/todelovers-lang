@@ -12,8 +12,8 @@ func NewThreadManager() *ThreadManager {
 	}
 }
 
-func (tm *ThreadManager) NewThread(interpreter Interpreter, parentID int) *Thread {
-	newThread := NewThread(len(tm.threads), parentID, interpreter)
+func (tm *ThreadManager) NewThread(parentID int) *Thread {
+	newThread := NewThread(len(tm.threads), parentID)
 	tm.threads = append(tm.threads, newThread)
 
 	return newThread

@@ -2,7 +2,6 @@ package threads
 
 import (
 	"fmt"
-	"mary_guica/pkg/tvm/pkg/runner"
 )
 
 type ThreadManager interface {
@@ -10,7 +9,7 @@ type ThreadManager interface {
 	GetThread(id int) *Thread
 	GetParent(current int) *Thread
 	Manage()
-	NewThread(id int, parentID int, runner runner.Runner) *Thread
+	NewThread(id int, parentID int) *Thread
 }
 type threadManager struct {
 	pool Pool
@@ -22,8 +21,8 @@ func NewThreadManager() ThreadManager {
 	}
 }
 
-func (tm *threadManager) NewThread(id int, parentID int, runner runner.Runner) *Thread {
-	newThread := NewThread(id, parentID, runner)
+func (tm *threadManager) NewThread(id int, parentID int) *Thread {
+	newThread := NewThread(id, parentID)
 	tm.pool.Append(newThread)
 
 	return newThread

@@ -1,11 +1,5 @@
 package requester
 
-import (
-	"fmt"
-	"reflect"
-	"time"
-)
-
 type Crew interface {
 	Register(id int)
 	Get(id int) FlightAttendant
@@ -20,32 +14,16 @@ func NewCrew() Crew {
 func (c crew) Register(id int)            { c[id] = NewFlightAttendant() }
 func (c crew) Get(id int) FlightAttendant { return c[id] }
 
-func (c crew) WaitingToServe() {
-	crew := c.PrepareCrew()
-	for {
-		select {
-		case channelID := <-crew:
-			fn := <-c.Get(channelID).WaitForRequest()
-			v := reflect.ValueOf(fn)
-			v.Call([]reflect.Value{reflect.ValueOf(rt.cp.MemoryManager())})
-
-		case <-time.After(2 * time.Second):
-			fmt.Println("Timeout: No data received in 2 seconds.")
-			return
-		}
-	}
-}
-
 func (c crew) PrepareCrew() <-chan int {
-	ch := make(chan int)
-	go func() {
-		defer close(ch)
-		for channelID, flightAttendant := range c {
-			select {
-			case <-flightAttendant.WaitForRequest():
-				ch <- channelID
+	ch := make(chan int, 1000000)
+	for channelID, flightAttendant := range c {
+		go func(id int, f FlightAttendant) {
+			for {
+				<-f.WaitForRequest()
+				ch <- id
+
 			}
-		}
-	}()
+		}(channelID, flightAttendant)
+	}
 	return ch
 }

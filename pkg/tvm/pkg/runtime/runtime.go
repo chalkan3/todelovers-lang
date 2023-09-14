@@ -38,6 +38,5 @@ func (rt *runtime) Requester() {
 		fn := <-rt.call
 		v := reflect.ValueOf(fn)
 		v.Call([]reflect.Value{reflect.ValueOf(rt.cp.MemoryManager())})
-
 	}
 }

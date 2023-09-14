@@ -1,9 +1,5 @@
 package threads
 
-import (
-	"mary_guica/pkg/tvm/pkg/runner"
-)
-
 type WaitThread struct {
 	Freeze  chan bool
 	Release chan bool
@@ -32,13 +28,11 @@ type Thread struct {
 	id             int
 	programPointer int
 	parentID       int
-	code           []byte
 	state          ThreadState
 	action         *Controll
-	runner         runner.Runner
 }
 
-func NewThread(id int, parentID int, runner runner.Runner) *Thread {
+func NewThread(id int, parentID int) *Thread {
 	return &Thread{
 		metadata: NewMetadata(id, parentID),
 		id:       id,
@@ -79,8 +73,7 @@ func (t *Thread) GetID() int { return t.id }
 
 func (t *Thread) GetPC() int { return 1 } //t.pc }
 
-func (t *Thread) Execute() {
-
+func (t *Thread) Execute(run func(threadID int, args ...interface{})) {
 	for {
 		select {
 		case <-t.Done():
@@ -92,7 +85,7 @@ func (t *Thread) Execute() {
 			t.MovePC(1)
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING
-			t.runner.Run(t.metadata.id)
+			run(t.metadata.id)
 		}
 
 	}
