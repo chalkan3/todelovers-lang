@@ -7,6 +7,7 @@ type ProgramManager interface {
 	Current(forkID ...byte) int
 	Code(forkID ...byte) []byte
 	Instruction(forkID ...byte) byte
+	GetAdressValue(pos int, forkID ...byte) byte
 }
 type programManager struct {
 	main  Program
@@ -39,4 +40,8 @@ func (p *programManager) Current(forkID ...byte) int   { return p.setProgram().C
 func (p *programManager) Code(forkID ...byte) []byte   { return p.setProgram(forkID...).Code() }
 func (p *programManager) Instruction(forkID ...byte) byte {
 	return p.setProgram(forkID...).Instruction()
+}
+
+func (p *programManager) GetAdressValue(pos int, forkID ...byte) byte {
+	return p.setProgram(forkID...).GetAdressValue(pos)
 }

@@ -1,9 +1,5 @@
 package runtime
 
-import (
-	"mary_guica/pkg/tvm/pkg/program"
-)
-
 type Runner interface {
 	Run(threadID int, args ...interface{})
 }
@@ -33,8 +29,8 @@ func NewRunner(id int, f FlightAttendant) Runner {
 
 func (m *runner) Run(threadID int, args ...interface{}) {
 
-	m.flightAttendant.Request(func(pm program.ProgramManager) interface{} {
-		return pm.Instruction(byte(threadID))
+	m.flightAttendant.Request(func(pm Runtime) interface{} {
+		return pm.ControlPlane().ProgramManager().Instruction(byte(threadID))
 	})
 	instruction := <-m.flightAttendant.WaitForReponse()
 

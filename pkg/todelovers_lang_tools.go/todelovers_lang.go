@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mary_guica/pkg/engine"
-	"mary_guica/pkg/interpreter"
 	"mary_guica/pkg/tvm"
+	interpreter "mary_guica/pkg/tvm/pkg/runtime"
 )
 
 type TodeTodeLoversLangTools interface {

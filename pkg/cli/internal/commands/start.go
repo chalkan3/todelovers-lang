@@ -1,4 +1,4 @@
-package commands
+package runtime
 
 import (
 	todelovers "mary_guica/pkg/todelovers_lang_tools.go"

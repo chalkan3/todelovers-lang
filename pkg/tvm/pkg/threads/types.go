@@ -6,12 +6,10 @@ import (
 )
 
 type (
-	Operands = register.Operands
 	Register = register.Register
 	Memory   = memory.Memory
 )
 
 var (
-	NewOperands = register.NewOperands
-	NewMemory   = memory.NewMemory
+	NewMemory = memory.NewMemory
 )

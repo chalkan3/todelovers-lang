@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"mary_guica/pkg/interpreter"
+	interpreter "mary_guica/pkg/tvm/pkg/runtime"
 	"math/rand"
 	"strconv"
 	"strings"

@@ -2,6 +2,7 @@ package tvm
 
 import (
 	control "mary_guica/pkg/tvm/pkg/control_plane"
+	rt "mary_guica/pkg/tvm/pkg/runtime"
 )
 
 type types byte
@@ -21,18 +22,19 @@ type ProgramManagerConfig = control.ProgramManagerConfig
 type ControlPlaneConfiguration = control.ControlPlaneConfiguration
 
 type TVM struct {
-	cp control.ControlPlane
+	cp      control.ControlPlane
+	runtime rt.Runtime
 }
 
 func NewTVM(c *ControlPlaneConfiguration) *TVM {
 	tvm := &TVM{
-		cp: control.NewControlPlane(c),
+		runtime: rt.NewRuntime(control.NewControlPlane(c)),
 	}
 
 	return tvm
 }
 
 func (vm *TVM) ExecuteCode(code []byte) {
-	go vm.cp.Requester()
-	vm.cp.Context(1, 0, code)
+	vm.runtime.Startup()
+	vm.runtime.Context(0, 0, code)
 }

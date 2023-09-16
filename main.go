@@ -99,20 +99,35 @@
 // }
 package main
 
-import "mary_guica/pkg/tvm"
+import (
+	"mary_guica/pkg/tvm"
+	"mary_guica/pkg/tvm/pkg/runtime"
+)
 
 func main() {
+	str := []byte("oi me chamo igor")
+	c := []byte{
+		runtime.LOAD_STRING, 0x00, byte(len(str)),
+	}
+
+	c = append(c, str...)
+	c = append(c, []byte{
+		runtime.PRINT, 0x00,
+	}...)
+	c = append(c, runtime.S_THREAD, 0x0)
+	c = append(c, runtime.HALT)
+
 	vm := tvm.NewTVM(&tvm.ControlPlaneConfiguration{
 		MemoryManager: tvm.MemoryManagerConfig{
 			FrameSize: 1024,
 		},
 		ThreadManager: tvm.ThreadManagerConfig{},
 		ProgramManager: tvm.ProgramManagerConfig{
-			Code: []byte{0x1, 0x05},
+			Code: c,
 		},
 	})
 
-	vm.ExecuteCode([]byte{0x1, 0x05})
+	vm.ExecuteCode(c)
 
 	// tvm.T()
 	// dsl, err := engine.File("main.todelovers")

@@ -1,4 +1,4 @@
-package commands
+runner
 
 import "github.com/spf13/cobra"
 
