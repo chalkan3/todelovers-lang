@@ -106,15 +106,28 @@ import (
 
 func main() {
 	str := []byte("oi me chamo igor")
+	str2 := []byte("quem esta me chamando é a segunda thread")
+
 	c := []byte{
 		runtime.LOAD_STRING, 0x00, byte(len(str)),
 	}
+	c2 := []byte{
+		runtime.LOAD_STRING, 0x00, byte(len(str2)),
+	}
+
+	t := []byte{}
+	t = append(t, c2...)
+	t = append(t, str2...)
+	t = append(t, runtime.PRINT, 0x0)
 
 	c = append(c, str...)
 	c = append(c, []byte{
 		runtime.PRINT, 0x00,
 	}...)
-	c = append(c, runtime.S_THREAD, 0x0)
+	c = append(c, runtime.S_THREAD, byte(len(t)))
+	c = append(c, t...)
+	c = append(c, runtime.ST_THREAD)
+	c = append(c, runtime.PRINT, 0x00)
 	c = append(c, runtime.HALT)
 
 	vm := tvm.NewTVM(&tvm.ControlPlaneConfiguration{

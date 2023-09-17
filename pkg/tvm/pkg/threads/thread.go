@@ -1,5 +1,11 @@
 package threads
 
+import (
+	"fmt"
+	"log"
+	"mary_guica/pkg/tvm/pkg/events"
+)
+
 type WaitThread struct {
 	Freeze  chan bool
 	Release chan bool
@@ -26,17 +32,19 @@ const (
 type Thread struct {
 	metadata       *Metadata
 	id             int
+	events         events.EventController
 	programPointer int
 	parentID       int
 	state          ThreadState
 	action         *Controll
 }
 
-func NewThread(id int, parentID int) *Thread {
-	return &Thread{
+func NewThread(id int, parentID int, ec events.EventController) *Thread {
+	t := &Thread{
 		metadata: NewMetadata(id, parentID),
 		id:       id,
 		parentID: parentID,
+		events:   ec,
 		state:    STHREAD_IDDLE,
 		action: &Controll{
 			Done: make(chan bool, 1),
@@ -47,6 +55,12 @@ func NewThread(id int, parentID int) *Thread {
 			},
 		},
 	}
+
+	ec.NewHandler(fmt.Sprintf("EVENT_THREAD_ID_%d", id))
+
+	ec.NewEvent(fmt.Sprintf("EVENT_THREAD_ID_%d", id), t)
+	return t
+
 }
 
 func (t *Thread) Next()                      { t.action.Next <- true }
@@ -73,11 +87,17 @@ func (t *Thread) GetID() int { return t.id }
 
 func (t *Thread) GetPC() int { return 1 } //t.pc }
 
-func (t *Thread) Execute(run func(threadID int, args ...interface{})) {
+func (t *Thread) Update() {
+	log.Printf("[VM] Thread ID: %d is ended\n", t.metadata.id)
+
+}
+
+func (t *Thread) Execute(run func(threadID int, args ...interface{}), threadID int, args ...interface{}) {
 	for {
 		select {
 		case <-t.Done():
 			t.state = STHREAD_DONE
+			t.events.Notify(fmt.Sprintf("EVENT_THREAD_ID_%d", t.metadata.id))
 			return
 		case <-t.Wait():
 			t.state = STHREAD_WAIT
@@ -85,7 +105,7 @@ func (t *Thread) Execute(run func(threadID int, args ...interface{})) {
 			t.MovePC(1)
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING
-			run(t.metadata.id)
+			run(threadID, args...)
 		}
 
 	}

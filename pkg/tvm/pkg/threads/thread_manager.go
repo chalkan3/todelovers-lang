@@ -2,6 +2,7 @@ package threads
 
 import (
 	"fmt"
+	"mary_guica/pkg/tvm/pkg/events"
 )
 
 type ThreadManager interface {
@@ -9,7 +10,7 @@ type ThreadManager interface {
 	GetThread(id int) *Thread
 	GetParent(current int) *Thread
 	Manage()
-	NewThread(id int, parentID int) *Thread
+	NewThread(id int, parentID int, ec events.EventController) *Thread
 }
 type threadManager struct {
 	pool Pool
@@ -21,8 +22,8 @@ func NewThreadManager() ThreadManager {
 	}
 }
 
-func (tm *threadManager) NewThread(id int, parentID int) *Thread {
-	newThread := NewThread(id, parentID)
+func (tm *threadManager) NewThread(id int, parentID int, ec events.EventController) *Thread {
+	newThread := NewThread(id, parentID, ec)
 	tm.pool.Append(newThread)
 
 	return newThread

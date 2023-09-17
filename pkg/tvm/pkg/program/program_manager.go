@@ -24,19 +24,14 @@ func NewProgramManager(code []byte) ProgramManager {
 func (p *programManager) getMainProgram() Program        { return p.main }
 func (p *programManager) getForkProgram(id byte) Program { return p.forks.GetProgram(id) }
 func (p *programManager) setProgram(id ...byte) Program {
-	handler := p.getMainProgram()
-	if len(id) > 0 {
-		handler = p.getForkProgram(id[0])
-	}
-
-	return handler
+	return p.getForkProgram(id[0])
 
 }
 
 func (p *programManager) NewFork(id byte, code []byte) { p.forks.New(id, NewProgram(code)) }
 func (p *programManager) Next(forkID ...byte)          { p.setProgram(forkID...).Next() }
 func (p *programManager) Jump(pos int, forkID ...byte) { p.setProgram(forkID...).Jump(pos) }
-func (p *programManager) Current(forkID ...byte) int   { return p.setProgram().Current() }
+func (p *programManager) Current(forkID ...byte) int   { return p.setProgram(forkID...).Current() }
 func (p *programManager) Code(forkID ...byte) []byte   { return p.setProgram(forkID...).Code() }
 func (p *programManager) Instruction(forkID ...byte) byte {
 	return p.setProgram(forkID...).Instruction()

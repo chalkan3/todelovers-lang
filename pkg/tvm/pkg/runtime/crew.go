@@ -1,5 +1,7 @@
 package runtime
 
+import "log"
+
 type Crew interface {
 	Register(id int)
 	Get(id int) FlightAttendant
@@ -25,8 +27,9 @@ func (c crew) Crew() map[int]FlightAttendant { return c.c }
 
 func (c crew) Handler() {
 	visitor := NewIsRunningVisitor()
-	for _, fa := range c.Crew() {
+	for id, fa := range c.Crew() {
 		fa.Accept(visitor, func(f FlightAttendant) {
+			log.Printf("[VM] New Crew ID[%d] \n", id)
 			for {
 				select {
 				case fn := <-fa.WaitForRequest():

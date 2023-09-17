@@ -1,9 +1,5 @@
 package runtime
 
-import (
-	"mary_guica/pkg/tvm/pkg/threads"
-)
-
 type halt struct {
 	*base
 }
@@ -17,8 +13,8 @@ func NewHalt(r FlightAttendant) Command {
 }
 
 func (c *halt) Execute(instruction byte, threadID int, args ...interface{}) {
-	c.Request(func(pm threads.ThreadManager) interface{} {
-		pm.GetThread(threadID).SetDone()
+	c.Request(func(pm Runtime) interface{} {
+		pm.ControlPlane().ThreadManager().GetThread(threadID).SetDone()
 		return nil
 	})
 }

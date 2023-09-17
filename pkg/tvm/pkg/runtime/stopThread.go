@@ -1,5 +1,7 @@
 package runtime
 
+import "fmt"
+
 type stopThread struct {
 	*base
 }
@@ -27,7 +29,11 @@ func NewStopThread(r FlightAttendant) Command {
 // }
 
 func (c *stopThread) Execute(instruction byte, threadID int, args ...interface{}) {
-	// c.setParentDont(threadID)
+	fmt.Println("fui chamado")
+	c.Request(func(pm Runtime) interface{} {
+		pm.ControlPlane().ThreadManager().GetThread(threadID).SetDone()
+		return nil
+	})
 	// c.tvm.GetThreadManager().GetThread(threadID).Done()
 
 }

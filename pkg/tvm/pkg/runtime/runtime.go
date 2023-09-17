@@ -28,9 +28,9 @@ func (rt *runtime) Context(id int, parent int, code []byte) {
 	rt.ev.Notify("NEW_CREW")
 	flightAttendant := rt.crew.Get(id)
 	runner := rt.rc.RunnerManager().NewRunner(id, flightAttendant)
-	thread := rt.cp.ThreadManager().NewThread(id, parent)
+	thread := rt.cp.ThreadManager().NewThread(id, parent, rt.ev)
 	thread.Next()
-	thread.Execute(runner.Run)
+	thread.Execute(runner.Run, id)
 
 }
 

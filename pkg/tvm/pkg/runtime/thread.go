@@ -36,18 +36,21 @@ func (c *thread) Execute(instruction byte, threadID int, args ...interface{}) {
 	// 	return pm.ThreadManager().GetParent(threadID)
 	// }).ToInt()
 
-	// fmt.Println(parentThreadID)
-	// parentMemory := c.getParentMemory(threadID, parentPC)
-	// memoryArg := parentMemory[parentPC+1]
+	parentThreadID := threadID
+	endThread := c.GetArgument(1, threadID).ToInt()
+	currentPC := c.GetCurrentPC(threadID)
 
-	// threadEndAdress := c.getThreadEndAdress(memoryArg)
+	threadCode := c.Request(func(rt Runtime) interface{} {
+		code := rt.ControlPlane().ProgramManager().Code(byte(threadID))
+		c := code[currentPC+2 : currentPC+3+endThread]
+		return c
+	}).ToByteArray()
 
-	// interpreter := c.GetVM().GetInterpreter()
-	// newThread := c.GetVM().GetThreadManager().NewThread(interpreter, threadID)
-	// threadProgram := parentMemory[parentPC+2 : parentPC+threadEndAdress+3]
+	c.Request(func(rt Runtime) interface{} {
+		rt.Context(1, parentThreadID, threadCode)
+		return nil
+	})
 
-	// newThread.Next()
-	// c.GetCurrentThread(threadID).MovePC(threadEndAdress + 3)
-	// go newThread.Execute(threadProgram)
+	c.MoveProgramPointer(3+endThread, threadID)
 
 }
