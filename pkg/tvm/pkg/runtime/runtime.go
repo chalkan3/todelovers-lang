@@ -2,7 +2,10 @@ package runtime
 
 import (
 	"fmt"
+	"mary_guica/pkg/nando"
+	eapi "mary_guica/pkg/tvm/internal/api/events"
 	control "mary_guica/pkg/tvm/pkg/control_plane"
+
 	"mary_guica/pkg/tvm/pkg/events"
 	"mary_guica/pkg/tvm/pkg/logger"
 	"os"
@@ -53,13 +56,19 @@ func (rt *runtime) ControlPlane() control.ControlPlane { return rt.cp }
 
 func (rt *runtime) Startup() {
 	// go rt.mc.GorotinesManger().Count()
-	go events.GetEventController().Listen()
+	// go events.GetEventController().Listen()
 	go rt.cp.ThreadManager().Manage()
 	rt.registerEvents()
 
 }
 
 func (rt *runtime) registerEvents() {
+	c := nando.Client{}
+
+	c.Do(nando.NewRequest("create-handler", &eapi.Request{
+		ID:          "1",
+		HandlerName: "NEW_CREW",
+	}))
 	events.GetEventController().NewObserver("NEW_CREW", []events.Observer{
 		logger.NewConsoleLogObserver(os.Stdout),
 		logger.NewFileLogObserver(),

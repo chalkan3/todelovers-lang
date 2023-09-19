@@ -65,20 +65,21 @@ func (wal *tLWAL) write(record *Record) error {
 		return err
 	}
 
-	index := NewKeyIndex().Load()
-	index.Index[record.Key()] = fileInfo.Size()
-	index.Save()
+	wal.indexes.Index[record.Key()+"|"+record.Table] = fileInfo.Size()
+	wal.indexes.Save()
 
 	return nil
 }
 
 func (wal *tLWAL) Write(record *Record, unique bool) error {
+	wal.indexes = NewKeyIndex().Load()
 	if unique {
-		if _, exists := wal.indexes.Index[record.Key()]; exists {
+		if _, exists := wal.indexes.Index[record.Key()+"|"+record.Table]; exists {
 			fmt.Println("=====================O registro com a chave 1 já existe.")
 			return nil
 		}
 	}
+
 	return wal.write(record)
 }
 func (wal *tLWAL) Read(filename string) ([]*Record, error) {
@@ -119,4 +120,16 @@ func (wal *tLWAL) ReadAll() ([]*Record, error) {
 	}
 
 	return allRecords, nil
+}
+
+func Table(table string, records []*Record) []*Record {
+	tableData := []*Record{}
+
+	for _, record := range records {
+		if record.Table == table && (record.Operation == "INSERT" || record.Operation == "UPDATE") {
+			tableData = append(tableData, record)
+		}
+	}
+
+	return tableData
 }

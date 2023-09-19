@@ -9,6 +9,7 @@ type Data struct {
 
 type Record struct {
 	Timestamp time.Time `json:"timestamp"`
+	Table     string    `json:"table"`
 	Operation string    `json:"operation"`
 	Data      *Data     `json:"data"`
 }
