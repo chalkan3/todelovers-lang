@@ -75,11 +75,10 @@ func (wal *tLWAL) Write(record *Record, unique bool) error {
 	wal.indexes = NewKeyIndex().Load()
 	if unique {
 		if _, exists := wal.indexes.Index[record.Key()+"|"+record.Table]; exists {
-			fmt.Println("=====================O registro com a chave 1 já existe.")
 			return nil
 		}
 	}
-
+	wal.CreateLogFile()
 	return wal.write(record)
 }
 func (wal *tLWAL) Read(filename string) ([]*Record, error) {

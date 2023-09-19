@@ -146,7 +146,7 @@ func main() {
 	c = append(c, runtime.S_THREAD, byte(len(t)))
 	c = append(c, t...)
 	c = append(c, runtime.ST_THREAD)
-	// c = append(c, runtime.W_THREAD)
+	c = append(c, runtime.W_THREAD)
 	c = append(c, c2...)
 	c = append(c, str2...)
 	c = append(c, runtime.PRINT, 0x00)

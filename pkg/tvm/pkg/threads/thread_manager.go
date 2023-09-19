@@ -2,6 +2,8 @@ package threads
 
 import (
 	"fmt"
+	"mary_guica/pkg/nando"
+	eapi "mary_guica/pkg/tvm/internal/api/events"
 	"mary_guica/pkg/tvm/pkg/events"
 	"time"
 )
@@ -51,16 +53,19 @@ func (tm *threadManager) GetParent(current int) *Thread {
 }
 
 func (tm *threadManager) Manage() {
+	c := &nando.Client{}
 	for {
 
-		events.GetEventController().Notify(&events.Notifier{
-			Handler: "NOTIFY",
-			Event: &events.Event{
-				Name:        "THREAD_POOL_SIZE",
-				Description: fmt.Sprintf("thread pool size :[%d]", tm.ThreadPoolSize()),
-				Data:        nil,
+		c.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+			Notifier: &events.Notifier{
+				Handler: "NOTIFY",
+				Event: &events.Event{
+					Name:        "THREAD_POOL_SIZE",
+					Description: fmt.Sprintf("thread pool size :[%d]", tm.ThreadPoolSize()),
+					Data:        nil,
+				},
 			},
-		})
+		}))
 
 		time.Sleep(5 * time.Second)
 

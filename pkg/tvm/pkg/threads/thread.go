@@ -2,6 +2,8 @@ package threads
 
 import (
 	"fmt"
+	"mary_guica/pkg/nando"
+	eapi "mary_guica/pkg/tvm/internal/api/events"
 	"mary_guica/pkg/tvm/pkg/events"
 )
 
@@ -36,14 +38,16 @@ type Thread struct {
 	parentID       int
 	state          ThreadState
 	action         *Controll
+	eventAPIClient *nando.Client
 }
 
 func NewThread(id int, parentID int) *Thread {
 	t := &Thread{
-		metadata: NewMetadata(id, parentID),
-		id:       id,
-		parentID: parentID,
-		state:    STHREAD_IDDLE,
+		metadata:       NewMetadata(id, parentID),
+		eventAPIClient: &nando.Client{},
+		id:             id,
+		parentID:       parentID,
+		state:          STHREAD_IDDLE,
 		action: &Controll{
 			Done: make(chan bool, 1),
 			Next: make(chan bool, 1),
@@ -87,34 +91,41 @@ func (t *Thread) Execute(run func(threadID int, args ...interface{}), threadID i
 		select {
 		case <-t.Done():
 			t.state = STHREAD_DONE
-			events.GetEventController().Notify(&events.Notifier{
-				Handler: "NOTIFY",
-				Event: &events.Event{
-					Name:        "THREAD_DONE",
-					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-					Data:        nil,
+			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+				Notifier: &events.Notifier{
+					Handler: "NOTIFY",
+					Event: &events.Event{
+						Name:        "THREAD_DONE",
+						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+						Data:        nil,
+					},
 				},
-			})
+			}))
+
 			return
 		case <-t.Wait():
 			t.state = STHREAD_WAIT
-			events.GetEventController().Notify(&events.Notifier{
-				Handler: "NOTIFY",
-				Event: &events.Event{
-					Name:        "THREAD_WAIT",
-					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-					Data:        nil,
+			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+				Notifier: &events.Notifier{
+					Handler: "NOTIFY",
+					Event: &events.Event{
+						Name:        "THREAD_WAIT",
+						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+						Data:        nil,
+					},
 				},
-			})
+			}))
 		case <-t.WaitRelease():
-			events.GetEventController().Notify(&events.Notifier{
-				Handler: "NOTIFY",
-				Event: &events.Event{
-					Name:        "RELEASED",
-					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-					Data:        nil,
+			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+				Notifier: &events.Notifier{
+					Handler: "NOTIFY",
+					Event: &events.Event{
+						Name:        "RELEASED",
+						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+						Data:        nil,
+					},
 				},
-			})
+			}))
 			t.Next()
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING

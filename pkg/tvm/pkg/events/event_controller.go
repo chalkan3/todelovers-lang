@@ -1,7 +1,5 @@
 package events
 
-import "sync"
-
 type EventController interface {
 	NewObserver(name string, os []Observer)
 	AddObserver(name string, os []Observer)
@@ -46,16 +44,4 @@ func NewEventController() EventController {
 		h:      make(map[string]Handler),
 		notify: make(chan *Notifier),
 	}
-}
-
-var (
-	instance EventController
-	once     sync.Once
-)
-
-func GetEventController() EventController {
-	once.Do(func() {
-		instance = NewEventController()
-	})
-	return instance
 }
