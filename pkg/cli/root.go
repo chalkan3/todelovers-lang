@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"mary_guica/pkg/cli/internal/commands"
+	commands "mary_guica/pkg/cli/internal/commands"
 	"os"
 
 	"github.com/spf13/cobra"

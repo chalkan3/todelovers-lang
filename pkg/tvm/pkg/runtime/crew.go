@@ -1,12 +1,10 @@
 package runtime
 
-import "log"
-
 type Crew interface {
 	Register(id int)
 	Get(id int) FlightAttendant
 	Crew() map[int]FlightAttendant
-	Update()
+	Handler()
 }
 type crew struct {
 	c       map[int]FlightAttendant
@@ -27,20 +25,12 @@ func (c crew) Crew() map[int]FlightAttendant { return c.c }
 
 func (c crew) Handler() {
 	visitor := NewIsRunningVisitor()
-	for id, fa := range c.Crew() {
+	for _, fa := range c.Crew() {
 		fa.Accept(visitor, func(f FlightAttendant) {
-			log.Printf("[VM] New Crew ID[%d] \n", id)
 			for {
 				select {
 				case fn := <-fa.WaitForRequest():
 					var returnV interface{}
-					// if fn, ok := fn.(func(control.ControlPlane) interface{}); ok {
-					// 	returnV = fn(c.runtime.ControlPlane())
-					// }
-
-					// if fn, ok := fn.(func(events.EventController) interface{}); ok {
-					// 	returnV = fn(c.runtime.EventController())
-					// }
 
 					if fn, ok := fn.(func(Runtime) interface{}); ok {
 						returnV = fn(c.runtime)
@@ -52,8 +42,4 @@ func (c crew) Handler() {
 
 		})
 	}
-}
-
-func (c crew) Update() {
-	c.Handler()
 }

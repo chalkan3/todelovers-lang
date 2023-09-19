@@ -1,45 +1,61 @@
 package events
 
+import "sync"
+
 type EventController interface {
-	NewEvent(handler string, ev Events)
-	NewHandler(name string)
-	Notify(handler string)
+	NewObserver(name string, os []Observer)
+	AddObserver(name string, os []Observer)
+	Notify(notifier *Notifier)
 	Listen()
+}
+
+type Notifier struct {
+	Handler string
+	Event   *Event
 }
 type eventController struct {
 	h      map[string]Handler
-	notify chan string
+	notify chan *Notifier
 }
 
-func (c *eventController) NewHandler(name string) {
+func (c *eventController) NewObserver(name string, os []Observer) {
 	c.h[name] = newHandler()
+	c.AddObserver(name, os)
+
 }
 
-func (c *eventController) NewEvent(handler string, ev Events) {
-	c.h[handler].AddEvents(ev)
+func (c *eventController) AddObserver(handler string, os []Observer) {
+	for _, o := range os {
+		c.h[handler].AddObserver(o)
+	}
 }
 
-func (c *eventController) Notify(handler string) {
-	c.notify <- handler
+func (c *eventController) Notify(notifier *Notifier) {
+	c.notify <- notifier
 }
 
 func (c *eventController) Listen() {
 	for {
-		handler := <-c.notify
-		go c.h[handler].NotifyEvents()
+		notifier := <-c.notify
+		go c.h[notifier.Handler].NotifyObserver(*notifier.Event)
 	}
 }
 
 func NewEventController() EventController {
 	return &eventController{
 		h:      make(map[string]Handler),
-		notify: make(chan string),
+		notify: make(chan *Notifier),
 	}
 }
 
-// controller := NewEventsController()
-// controller.Register("")
-// controller.Notify("newContext")
-// for {}
-//
-//
+var (
+	instance EventController
+	once     sync.Once
+)
+
+func GetEventController() EventController {
+	once.Do(func() {
+		instance = NewEventController()
+	})
+	return instance
+}

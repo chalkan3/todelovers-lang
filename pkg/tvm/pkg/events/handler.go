@@ -1,30 +1,36 @@
 package events
 
-type Events interface {
-	Update()
+type Event struct {
+	Name        string
+	Description string
+	Data        interface{}
+}
+
+type Observer interface {
+	Update(event Event)
 }
 
 type Handler interface {
-	AddEvents(observer Events)
-	RemoveEvents(observer Events)
-	NotifyEvents()
+	AddObserver(observer Observer)
+	RemoveObserver(observer Observer)
+	NotifyObserver(event Event)
 }
 
 type handler struct {
-	observerList []Events
+	observerList []Observer
 	name         string
 }
 
 func newHandler() Handler {
 	return &handler{
-		observerList: []Events{},
+		observerList: []Observer{},
 	}
 }
-func (s *handler) AddEvents(observer Events) {
+func (s *handler) AddObserver(observer Observer) {
 	s.observerList = append(s.observerList, observer)
 }
 
-func (s *handler) RemoveEvents(observer Events) {
+func (s *handler) RemoveObserver(observer Observer) {
 	for i, o := range s.observerList {
 		if o == observer {
 			s.observerList = append(s.observerList[:i], s.observerList[i+1:]...)
@@ -33,8 +39,8 @@ func (s *handler) RemoveEvents(observer Events) {
 	}
 }
 
-func (s *handler) NotifyEvents() {
+func (s *handler) NotifyObserver(event Event) {
 	for _, o := range s.observerList {
-		o.Update()
+		o.Update(event)
 	}
 }

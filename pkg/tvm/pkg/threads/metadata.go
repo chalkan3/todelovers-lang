@@ -7,7 +7,7 @@ type Metadata struct {
 }
 
 func (m *Metadata) ID() int       { return m.id }
-func (m *Metadata) ParentID() int { return m.id }
+func (m *Metadata) ParentID() int { return m.parentID }
 func (m *Metadata) Main() bool    { return m.main }
 
 func (m *Metadata) SetParentID(parentID int) { m.parentID = parentID }

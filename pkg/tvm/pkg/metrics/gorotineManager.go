@@ -1,7 +1,8 @@
 package metrics
 
 import (
-	"log"
+	"fmt"
+	"mary_guica/pkg/tvm/pkg/events"
 	"runtime"
 	"time"
 )
@@ -16,7 +17,14 @@ type gorotineManager struct {
 func NewGorotineManager() GorotineManager { return new(gorotineManager) }
 func (m *gorotineManager) Count() {
 	for {
-		log.Printf("[VM] Total current gorotine: %d\n", runtime.NumGoroutine())
-		time.Sleep(1 * time.Second)
+		events.GetEventController().Notify(&events.Notifier{
+			Handler: "NOTIFY",
+			Event: &events.Event{
+				Name:        "COUNT_GOROTINES",
+				Description: fmt.Sprintf("Total of gorotines running: {%d} ", runtime.NumGoroutine()),
+				Data:        runtime.NumGoroutine(),
+			},
+		})
+		time.Sleep(5 * time.Second)
 	}
 }

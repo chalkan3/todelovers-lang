@@ -2,7 +2,6 @@ package threads
 
 import (
 	"fmt"
-	"log"
 	"mary_guica/pkg/tvm/pkg/events"
 )
 
@@ -39,12 +38,11 @@ type Thread struct {
 	action         *Controll
 }
 
-func NewThread(id int, parentID int, ec events.EventController) *Thread {
+func NewThread(id int, parentID int) *Thread {
 	t := &Thread{
 		metadata: NewMetadata(id, parentID),
 		id:       id,
 		parentID: parentID,
-		events:   ec,
 		state:    STHREAD_IDDLE,
 		action: &Controll{
 			Done: make(chan bool, 1),
@@ -56,9 +54,6 @@ func NewThread(id int, parentID int, ec events.EventController) *Thread {
 		},
 	}
 
-	ec.NewHandler(fmt.Sprintf("EVENT_THREAD_ID_%d", id))
-
-	ec.NewEvent(fmt.Sprintf("EVENT_THREAD_ID_%d", id), t)
 	return t
 
 }
@@ -87,22 +82,40 @@ func (t *Thread) GetID() int { return t.id }
 
 func (t *Thread) GetPC() int { return 1 } //t.pc }
 
-func (t *Thread) Update() {
-	log.Printf("[VM] Thread ID: %d is ended\n", t.metadata.id)
-
-}
-
 func (t *Thread) Execute(run func(threadID int, args ...interface{}), threadID int, args ...interface{}) {
 	for {
 		select {
 		case <-t.Done():
 			t.state = STHREAD_DONE
-			t.events.Notify(fmt.Sprintf("EVENT_THREAD_ID_%d", t.metadata.id))
+			events.GetEventController().Notify(&events.Notifier{
+				Handler: "NOTIFY",
+				Event: &events.Event{
+					Name:        "THREAD_DONE",
+					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+					Data:        nil,
+				},
+			})
 			return
 		case <-t.Wait():
 			t.state = STHREAD_WAIT
+			events.GetEventController().Notify(&events.Notifier{
+				Handler: "NOTIFY",
+				Event: &events.Event{
+					Name:        "THREAD_WAIT",
+					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+					Data:        nil,
+				},
+			})
 		case <-t.WaitRelease():
-			t.MovePC(1)
+			events.GetEventController().Notify(&events.Notifier{
+				Handler: "NOTIFY",
+				Event: &events.Event{
+					Name:        "RELEASED",
+					Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
+					Data:        nil,
+				},
+			})
+			t.Next()
 		case <-t.action.Next:
 			t.state = STHREAD_RUNNING
 			run(threadID, args...)

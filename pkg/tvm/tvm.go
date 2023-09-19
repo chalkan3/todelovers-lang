@@ -36,5 +36,5 @@ func NewTVM(c *ControlPlaneConfiguration) *TVM {
 
 func (vm *TVM) ExecuteCode(code []byte) {
 	vm.runtime.Startup()
-	vm.runtime.Context(0, 0, code)
+	vm.runtime.Context(0, -1, code)
 }

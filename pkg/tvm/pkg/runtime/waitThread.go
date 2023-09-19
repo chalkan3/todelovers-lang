@@ -12,18 +12,24 @@ func NewWaitThread(r FlightAttendant) Command {
 	}
 }
 
-// func (c *waitThread) setParentWait(threadID int) {
-// 	current := c.GetCurrentThread(threadID)
-// 	current.SetWait()
+func (c *waitThread) setParentWait(threadID int) {
 
-// 	if current.ParentID() != -1 {
-// 		c.setParentWait(current.ParentID())
-// 		return
+	current := c.Request(func(rt Runtime) interface{} {
+		return rt.ControlPlane().ThreadManager().GetThread(threadID)
+	}).ToThread()
 
-// 	}
+	current.SetWait()
 
-// }
+	if current.ParentID() == -1 {
+		return
+	}
+
+	c.setParentWait(current.ParentID())
+
+}
 
 func (c *waitThread) Execute(instruction byte, threadID int, args ...interface{}) {
-	// c.setParentWait(threadID)
+	c.setParentWait(threadID)
+	c.MoveProgramPointer(1, threadID)
+
 }

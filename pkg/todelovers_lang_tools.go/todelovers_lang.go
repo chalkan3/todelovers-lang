@@ -5,14 +5,12 @@ import (
 	"io/ioutil"
 	"mary_guica/pkg/engine"
 	"mary_guica/pkg/tvm"
-	interpreter "mary_guica/pkg/tvm/pkg/runtime"
 )
 
 type TodeTodeLoversLangTools interface {
 	Run(bin string)
 	Build(target string)
 	GetVM() *tvm.TVM
-	GetInterpreter() tvm.Interpreter
 	BuildAndRun(target string)
 }
 
@@ -44,7 +42,17 @@ func (t *tools) Run(bin string) {
 	// 	interpreter.HALT,
 	// }
 
-	t.vm.LoadCode(dataRead)
+	vm := tvm.NewTVM(&tvm.ControlPlaneConfiguration{
+		MemoryManager: tvm.MemoryManagerConfig{
+			FrameSize: 1024,
+		},
+		ThreadManager: tvm.ThreadManagerConfig{},
+		ProgramManager: tvm.ProgramManagerConfig{
+			Code: dataRead,
+		},
+	})
+
+	vm.ExecuteCode(dataRead)
 	// t.vm.LoadCode(code)
 }
 func (t *tools) Build(target string) {
@@ -63,7 +71,7 @@ func (t *tools) Build(target string) {
 	root.RegisterSymbols(symbleTable, nil)
 	engine.PrintSymbolTable(symbleTable)
 
-	code := root.GenerateIntermediateCode()
+	code := root.GenerateIntermediateCode(symbleTable)
 
 	filePath := "todbin"
 
@@ -88,8 +96,17 @@ func (t *tools) BuildAndRun(target string) {
 	root := assembler.GetRoot()
 	root.RegisterSymbols(symbleTable, nil)
 
-	code := root.GenerateIntermediateCode()
-	t.vm.LoadCode(code)
+	code := root.GenerateIntermediateCode(symbleTable)
+	vm := tvm.NewTVM(&tvm.ControlPlaneConfiguration{
+		MemoryManager: tvm.MemoryManagerConfig{
+			FrameSize: 1024,
+		},
+		ThreadManager: tvm.ThreadManagerConfig{},
+		ProgramManager: tvm.ProgramManagerConfig{
+			Code: code,
+		},
+	})
+	vm.ExecuteCode(code)
 
 }
 func (t *tools) GetVM() *tvm.TVM {
@@ -100,12 +117,6 @@ func (t *tools) GetInterpreter() tvm.Interpreter {
 }
 
 func New() TodeTodeLoversLangTools {
-	vm := tvm.NewTVM()
-	handler := interpreter.NewInterpreter(vm)
-	vm.RegisterInterpreter(handler)
 
-	return &tools{
-		vm:          vm,
-		interpreter: handler,
-	}
+	return &tools{}
 }

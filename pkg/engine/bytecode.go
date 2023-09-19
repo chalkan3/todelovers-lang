@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	interpreter "mary_guica/pkg/tvm/pkg/interpreter"
+	interpreter "mary_guica/pkg/tvm/pkg/runtime"
 )
 
 func PrintByteCode(code []byte) {
