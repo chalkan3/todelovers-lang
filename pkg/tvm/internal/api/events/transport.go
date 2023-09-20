@@ -6,6 +6,17 @@ import (
 	"mary_guica/pkg/tvm/pkg/events"
 )
 
+type RouteKey int
+
+func (r RouteKey) String() string {
+	return [...]string{"notify", "create-handler"}[r]
+}
+
+const (
+	Notify RouteKey = iota
+	CreateHandler
+)
+
 type EventsAPI interface {
 	Routes(svc Service) []*nando.Handler
 	Serve()
@@ -30,7 +41,7 @@ func (e *eventsAPI) Serve() {
 
 func (e *eventsAPI) Routes(svc Service) []*nando.Handler {
 	return []*nando.Handler{
-		nando.NewHandler("notify", nando.HandleFunc(NotifyEndpoint(svc))),
-		nando.NewHandler("create-handler", nando.HandleFunc(CreateHandlerEndpoint(svc))),
+		nando.NewHandler(Notify.String(), nando.HandleFunc(NotifyEndpoint(svc))),
+		nando.NewHandler(CreateHandler.String(), nando.HandleFunc(CreateHandlerEndpoint(svc))),
 	}
 }

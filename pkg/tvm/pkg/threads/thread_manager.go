@@ -55,8 +55,7 @@ func (tm *threadManager) GetParent(current int) *Thread {
 func (tm *threadManager) Manage() {
 	c := &nando.Client{}
 	for {
-
-		c.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+		c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 			Notifier: &events.Notifier{
 				Handler: "NOTIFY",
 				Event: &events.Event{

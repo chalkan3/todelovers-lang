@@ -30,7 +30,7 @@ func (rt *runtime) Context(id int, parent int, code []byte) {
 	rt.crew.Register(id)
 	flightAttendant := rt.crew.Get(id)
 	c := &nando.Client{}
-	c.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+	c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 		Notifier: &events.Notifier{
 			Handler: "NEW_CREW",
 			Event: &events.Event{
@@ -44,7 +44,7 @@ func (rt *runtime) Context(id int, parent int, code []byte) {
 	runner := rt.rc.RunnerManager().NewRunner(id, flightAttendant)
 	thread := rt.cp.ThreadManager().NewThread(id, parent)
 
-	c.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+	c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 		Notifier: &events.Notifier{
 			Handler: "NOTIFY",
 			Event: &events.Event{
@@ -72,7 +72,7 @@ func (rt *runtime) Startup() {
 func (rt *runtime) registerEvents() {
 	c := nando.Client{}
 
-	c.Do(nando.NewRequest("create-handler", &eapi.CreateHandlerRequest{
+	c.Do(nando.NewRequest(eapi.CreateHandler.String(), &eapi.CreateHandlerRequest{
 		EventHandler: &eapi.EventHandler{
 			ID:          "1",
 			HandlerName: "NEW_CREW",
@@ -84,7 +84,7 @@ func (rt *runtime) registerEvents() {
 		},
 	}))
 
-	c.Do(nando.NewRequest("create-handler", &eapi.CreateHandlerRequest{
+	c.Do(nando.NewRequest(eapi.CreateHandler.String(), &eapi.CreateHandlerRequest{
 		EventHandler: &eapi.EventHandler{
 			ID:          "2",
 			HandlerName: "NOTIFY",

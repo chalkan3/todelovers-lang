@@ -1,9 +1,7 @@
 package threads
 
 import (
-	"fmt"
 	"mary_guica/pkg/nando"
-	eapi "mary_guica/pkg/tvm/internal/api/events"
 	"mary_guica/pkg/tvm/pkg/events"
 )
 
@@ -17,26 +15,13 @@ type Controll struct {
 	Wait *WaitThread
 }
 
-type ThreadState int
-
-func (ts ThreadState) String() string {
-	return [...]string{"WAIT", "DONE", "RUNNING", "IDDLE"}[ts]
-}
-
-const (
-	STHREAD_WAIT ThreadState = iota
-	STHREAD_DONE
-	STHREAD_RUNNING
-	STHREAD_IDDLE
-)
-
 type Thread struct {
 	metadata       *Metadata
 	id             int
 	events         events.EventController
 	programPointer int
 	parentID       int
-	state          ThreadState
+	state          *TState
 	action         *Controll
 	eventAPIClient *nando.Client
 }
@@ -47,7 +32,6 @@ func NewThread(id int, parentID int) *Thread {
 		eventAPIClient: &nando.Client{},
 		id:             id,
 		parentID:       parentID,
-		state:          STHREAD_IDDLE,
 		action: &Controll{
 			Done: make(chan bool, 1),
 			Next: make(chan bool, 1),
@@ -58,6 +42,7 @@ func NewThread(id int, parentID int) *Thread {
 		},
 	}
 
+	t.state = NewTState(t)
 	return t
 
 }
@@ -68,7 +53,6 @@ func (t *Thread) SetWaitRelease()            { t.action.Wait.Release <- true }
 func (t *Thread) MoveProgramPointer(pos int) { t.programPointer += pos }
 func (t *Thread) GetProgramArg(pos int) int  { return t.programPointer + pos }
 func (t *Thread) Wait() chan bool            { return t.action.Wait.Freeze }
-func (t *Thread) Waiting() bool              { return t.state == STHREAD_WAIT }
 func (t *Thread) ParentID() int              { return t.metadata.ParentID() }
 func (t *Thread) WaitRelease() chan bool     { return t.action.Wait.Release }
 
@@ -90,45 +74,17 @@ func (t *Thread) Execute(run func(threadID int, args ...interface{}), threadID i
 	for {
 		select {
 		case <-t.Done():
-			t.state = STHREAD_DONE
-			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
-				Notifier: &events.Notifier{
-					Handler: "NOTIFY",
-					Event: &events.Event{
-						Name:        "THREAD_DONE",
-						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-						Data:        nil,
-					},
-				},
-			}))
-
+			t.state.SetState(NewDoneState())
+			t.state.Do()
 			return
 		case <-t.Wait():
-			t.state = STHREAD_WAIT
-			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
-				Notifier: &events.Notifier{
-					Handler: "NOTIFY",
-					Event: &events.Event{
-						Name:        "THREAD_WAIT",
-						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-						Data:        nil,
-					},
-				},
-			}))
+			t.state.SetState(NewWaitState())
+			t.state.Do()
 		case <-t.WaitRelease():
-			t.eventAPIClient.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
-				Notifier: &events.Notifier{
-					Handler: "NOTIFY",
-					Event: &events.Event{
-						Name:        "RELEASED",
-						Description: fmt.Sprintf("thread_ID :[%d]", t.metadata.id),
-						Data:        nil,
-					},
-				},
-			}))
 			t.Next()
 		case <-t.action.Next:
-			t.state = STHREAD_RUNNING
+			t.state.SetState(NewRunningState())
+			t.state.Do()
 			run(threadID, args...)
 		}
 

@@ -3,6 +3,8 @@ package events
 import (
 	wal "mary_guica/pkg/tlwal"
 	"mary_guica/pkg/tvm/pkg/events"
+	"math/rand"
+	"strconv"
 )
 
 type Service interface {
@@ -41,5 +43,19 @@ func (s *service) CreateHandler(eventHandler *EventHandler) error {
 }
 func (s *service) Notify(notifier *Notifier) error {
 	s.ec.Notify(notifier)
+
+	record := &wal.Record{
+		Operation: "INSERT",
+		Table:     "notifier",
+		Data: &wal.Data{
+			Key:   strconv.Itoa(rand.Int()),
+			Value: notifier.Event.Description,
+		},
+	}
+
+	err := s.wal.Write(record, true)
+	if err != nil {
+		return nil
+	}
 	return nil
 }

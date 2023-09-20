@@ -22,7 +22,7 @@ func (m *gorotineManager) Count() {
 	c := &nando.Client{}
 	for {
 		time.Sleep(3 * time.Second)
-		c.Do(nando.NewRequest("notify", &eapi.NotifyRequest{
+		c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 			Notifier: &events.Notifier{
 				Handler: "NOTIFY",
 				Event: &events.Event{

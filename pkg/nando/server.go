@@ -77,12 +77,5 @@ func (s *Server) worker() {
 
 		s.responses <- resp
 	}
-	// for req := range s.requests {
-	// 	resp, err := s.handlers[req.funcName](req)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
 
-	// 	s.responses <- resp
-	// }
 }
