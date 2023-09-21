@@ -2,8 +2,7 @@ package runtime
 
 import (
 	"fmt"
-	"mary_guica/pkg/tvm/pkg/program"
-	"mary_guica/pkg/tvm/pkg/threads"
+	"mary_guica/pkg/cast"
 )
 
 type add struct {
@@ -19,21 +18,12 @@ func NewADD(r FlightAttendant) Command {
 }
 
 func (c *add) Execute(instruction byte, threadID int, args ...interface{}) {
-	fmt.Println("executei")
-	arg1 := c.Request(func(pm program.ProgramManager) interface{} {
-		return pm.GetAdressValue(1, byte(threadID))
-	}).ToInt()
-
-	arg2 := c.Request(func(pm program.ProgramManager) interface{} {
-		return pm.GetAdressValue(2, byte(threadID))
-	}).ToInt()
+	arg1 := cast.ToAlwaysInt(getArgument(1, threadID))
+	arg2 := cast.ToAlwaysInt(getArgument(2, threadID))
 
 	fmt.Println(arg1 + arg2)
 
-	c.Request(func(pm threads.ThreadManager) interface{} {
-		pm.GetThread(threadID).Next()
-		return nil
-	})
+	moveProgramPointer(1, threadID)
 
 	// arg1 := c.GetCurrentThread(threadID).PcPointer(1)
 	// arg2 := c.GetCurrentThread(threadID).PcPointer(2)

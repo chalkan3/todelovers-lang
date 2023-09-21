@@ -14,18 +14,13 @@ func NewStopThread(r FlightAttendant) Command {
 
 func (c *stopThread) setParentDont(threadID int) {
 
-	current := c.Request(func(rt Runtime) interface{} {
-		return rt.ControlPlane().ThreadManager().GetThread(threadID)
-	}).ToThread()
+	current := threadManager().GetThread(threadID)
 
 	if current.ParentID() == -1 {
 		return
 	}
 
-	parent := c.Request(func(rt Runtime) interface{} {
-		return rt.ControlPlane().ThreadManager().GetParent(threadID)
-	}).ToThread()
-
+	parent := threadManager().GetParent(threadID)
 	parent.SetWaitRelease()
 
 	// if parent.Waiting() {
@@ -37,9 +32,5 @@ func (c *stopThread) setParentDont(threadID int) {
 
 func (c *stopThread) Execute(instruction byte, threadID int, args ...interface{}) {
 	c.setParentDont(threadID)
-	c.Request(func(pm Runtime) interface{} {
-		pm.ControlPlane().ThreadManager().GetThread(threadID).SetDone()
-		return nil
-	})
-
+	threadManager().GetThread(threadID).SetDone()
 }

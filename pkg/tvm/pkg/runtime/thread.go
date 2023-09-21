@@ -32,20 +32,17 @@ func (c *thread) getThreadEndAdress(memoryPos byte) int { return toAlwaysInt(mem
 func (c *thread) Execute(instruction byte, threadID int, args ...interface{}) {
 
 	parentThreadID := threadID
-	endThread := c.GetArgument(1, threadID).ToInt()
-	currentPC := c.GetCurrentPC(threadID)
+	endThread := getArgument(1, threadID)
+	currentPC := getCurrentPC(threadID)
 
-	threadCode := c.Request(func(rt Runtime) interface{} {
-		code := rt.ControlPlane().ProgramManager().Code(byte(threadID))
-		c := code[currentPC+2 : currentPC+3+endThread]
-		return c
-	}).ToByteArray()
+	code := programManager().Code(byte(threadID))
+	threadCode := code[currentPC+2 : currentPC+3+int(endThread)]
 
 	c.Request(func(rt Runtime) interface{} {
 		go rt.Context(parentThreadID+1, parentThreadID, threadCode)
 		return nil
 	})
 
-	c.MoveProgramPointer(3+endThread, threadID)
+	moveProgramPointer(3+int(endThread), threadID)
 
 }

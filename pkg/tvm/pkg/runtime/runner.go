@@ -29,10 +29,7 @@ func NewRunner(id int, f FlightAttendant) Runner {
 
 func (m *runner) Run(threadID int, args ...interface{}) {
 
-	m.flightAttendant.Request(func(pm Runtime) interface{} {
-		return pm.ControlPlane().ProgramManager().Instruction(byte(threadID))
-	})
-	instruction := <-m.flightAttendant.WaitForReponse()
+	instruction := programManager().Instruction(byte(threadID))
 
-	m.interpreter.Handle(instruction.ToByte(), threadID, args...)
+	m.interpreter.Handle(instruction, threadID, args...)
 }

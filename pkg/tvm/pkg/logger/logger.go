@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 )
 
 // Logger interface
@@ -27,7 +28,9 @@ func NewConsoleLogger(output io.Writer) *ConsoleLogger {
 func (l *ConsoleLogger) Log(level int, message string) {
 	// Format the message
 	ss := [...]string{"INFO", "WARNING", "ERROR"}[level]
-	formattedMessage := fmt.Sprintf("[%s]%s\n", ss, message)
+	currentTime := time.Now()
+
+	formattedMessage := fmt.Sprintf("%s [%s]%s\n", currentTime.Format(time.RFC3339), ss, message)
 
 	// Write the message to the output stream
 	l.output.Write([]byte(formattedMessage))

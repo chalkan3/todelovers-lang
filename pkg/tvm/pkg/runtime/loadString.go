@@ -1,5 +1,7 @@
 package runtime
 
+import "mary_guica/pkg/cast"
+
 type loadString struct {
 	*base
 }
@@ -13,19 +15,19 @@ func NewLoadString(r FlightAttendant) Command {
 }
 
 func (c *loadString) Execute(instruction byte, threadID int, args ...interface{}) {
-	registerID := c.GetArgument(1, threadID).ToByte()
-	stringLen := c.GetArgument(2, threadID).ToInt()
+	registerID := getArgument(1, threadID)
+	stringLen := cast.ToAlwaysInt(getArgument(2, threadID))
 
-	register := c.GetRegisterByID(registerID)
+	register := getRegisterByID(registerID)
 
 	strData := make([]byte, stringLen)
 
 	for i := 0; i < stringLen; i++ {
-		strData[i] = c.GetArgument(3+i, threadID).ToByte()
+		strData[i] = getArgument(3+i, threadID)
 	}
 
 	str := string(strData)
 	register.Set(str)
 
-	c.MoveProgramPointer(stringLen+3, threadID)
+	moveProgramPointer(stringLen+3, threadID)
 }

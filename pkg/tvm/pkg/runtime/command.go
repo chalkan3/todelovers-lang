@@ -1,10 +1,11 @@
 package runtime
 
 import (
-	"fmt"
 	"mary_guica/pkg/nando"
 	capi "mary_guica/pkg/tvm/internal/api/control_plane"
 	control "mary_guica/pkg/tvm/pkg/control_plane"
+	"mary_guica/pkg/tvm/pkg/memory"
+	"mary_guica/pkg/tvm/pkg/program"
 	"mary_guica/pkg/tvm/pkg/register"
 	"mary_guica/pkg/tvm/pkg/threads"
 )
@@ -24,48 +25,42 @@ func getManager[T control.Manager](apiPath string) T {
 	return capi.Cast[T](response)
 }
 
-func getThreadManager() threads.ThreadManager {
+func threadManager() threads.ThreadManager {
 	return getManager[threads.ThreadManager]("thread.manager")
+}
+func programManager() program.ProgramManager {
+	return getManager[program.ProgramManager]("program.manager")
+}
+func registerManager() register.RegisterManager {
+	return getManager[register.RegisterManager]("register.manager")
+}
+func memoryManager() memory.MemoryManager {
+	return getManager[memory.MemoryManager]("memory.manager")
+}
+
+func moveProgramPointer(m int, threadID int) {
+	if m == 1 {
+		programManager().Next(byte(threadID))
+		return
+	}
+
+	programManager().Jump(m, byte(threadID))
+
+	threadManager().GetThread(threadID).Next()
 }
 
 func (b *base) Request(fn interface{}) Output {
-	threadManager := getThreadManager()
-	fmt.Println(threadManager)
 	go b.requester.Request(fn)
 	return <-b.requester.WaitForReponse()
 }
 
-func (b *base) MoveProgramPointer(m int, threadID int) {
-	b.Request(func(ct Runtime) interface{} {
-		if m == 1 {
-			ct.ControlPlane().ProgramManager().Next(byte(threadID))
-			return nil
-		}
-
-		ct.ControlPlane().ProgramManager().Jump(m, byte(threadID))
-
-		ct.ControlPlane().ThreadManager().GetThread(threadID).Next()
-
-		return nil
-	})
-
+func getArgument(pos int, threadID int) byte {
+	return programManager().GetAdressValue(pos, byte(threadID))
+}
+func getRegisterByID(id byte) register.Register {
+	return registerManager().GetRegister(id)
 }
 
-func (b *base) GetArgument(pos int, threadID int) Output {
-	return b.Request(func(ct Runtime) interface{} {
-		return ct.ControlPlane().ProgramManager().GetAdressValue(pos, byte(threadID))
-	})
-
-}
-
-func (b *base) GetRegisterByID(id byte) register.Register {
-	return b.Request(func(ct Runtime) interface{} {
-		return ct.ControlPlane().RegisterManager().GetRegister(id)
-	}).ToRegister()
-}
-
-func (b *base) GetCurrentPC(threadID int) int {
-	return b.Request(func(ct Runtime) interface{} {
-		return ct.ControlPlane().ProgramManager().Current(byte(threadID))
-	}).ToInt()
+func getCurrentPC(threadID int) int {
+	return programManager().Current(byte(threadID))
 }

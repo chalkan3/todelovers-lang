@@ -18,13 +18,11 @@ func NewPrint(r FlightAttendant) Command {
 
 func (c *print) Execute(instruction byte, threadID int, args ...interface{}) {
 	// arg1 := c.GetCurrentThread(threadID).PcPointer(1)
-	arg1 := c.GetArgument(1, threadID).ToByte()
+	arg1 := getArgument(1, threadID)
 
-	register := c.Request(func(pm Runtime) interface{} {
-		return pm.ControlPlane().RegisterManager().GetRegister(arg1)
-	}).ToRegister()
+	register := registerManager().GetRegister(arg1)
 
 	fmt.Println(register.Value())
 
-	c.MoveProgramPointer(2, threadID)
+	moveProgramPointer(2, threadID)
 }
