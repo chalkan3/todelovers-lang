@@ -8,6 +8,7 @@ type ProgramManager interface {
 	Code(forkID ...byte) []byte
 	Instruction(forkID ...byte) byte
 	GetAdressValue(pos int, forkID ...byte) byte
+	APIPath() string
 }
 type programManager struct {
 	main  Program
@@ -33,6 +34,8 @@ func (p *programManager) Next(forkID ...byte)          { p.setProgram(forkID...)
 func (p *programManager) Jump(pos int, forkID ...byte) { p.setProgram(forkID...).Jump(pos) }
 func (p *programManager) Current(forkID ...byte) int   { return p.setProgram(forkID...).Current() }
 func (p *programManager) Code(forkID ...byte) []byte   { return p.setProgram(forkID...).Code() }
+func (p *programManager) APIPath() string              { return "program.manager" }
+
 func (p *programManager) Instruction(forkID ...byte) byte {
 	return p.setProgram(forkID...).Instruction()
 }

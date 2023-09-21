@@ -19,7 +19,7 @@ type gorotineManager struct {
 
 func NewGorotineManager() GorotineManager { return new(gorotineManager) }
 func (m *gorotineManager) Count() {
-	c := &nando.Client{}
+	c := eapi.Client()
 	for {
 		time.Sleep(3 * time.Second)
 		c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{

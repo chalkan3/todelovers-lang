@@ -8,6 +8,7 @@ const (
 
 type RegisterManager interface {
 	GetRegister(opID byte) Register
+	APIPath() string
 }
 type registerManager struct {
 	registers []Register
@@ -24,3 +25,4 @@ func NewRegisterManager() *registerManager {
 }
 
 func (op *registerManager) GetRegister(opID byte) Register { return op.registers[opID] }
+func (op *registerManager) APIPath() string                { return "register.manager" }

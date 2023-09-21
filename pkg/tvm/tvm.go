@@ -1,7 +1,6 @@
 package tvm
 
 import (
-	eapi "mary_guica/pkg/tvm/internal/api/events"
 	control "mary_guica/pkg/tvm/pkg/control_plane"
 
 	rt "mary_guica/pkg/tvm/pkg/runtime"
@@ -24,21 +23,24 @@ type ProgramManagerConfig = control.ProgramManagerConfig
 type ControlPlaneConfiguration = control.ControlPlaneConfiguration
 
 type TVM struct {
-	runtime  rt.Runtime
-	eventAPI eapi.EventsAPI
+	runtime rt.Runtime
 }
 
 func NewTVM(c *ControlPlaneConfiguration) *TVM {
 	tvm := &TVM{
-		runtime:  rt.NewRuntime(control.NewControlPlane(c)),
-		eventAPI: eapi.NewEventsAPI(),
+		runtime: rt.NewRuntime(control.NewControlPlane(c)),
 	}
 
 	return tvm
 }
 
+func (vm *TVM) Startup() *TVM {
+	vm.runtime.StartAPIS()
+	vm.runtime.RegisterEvents()
+	vm.runtime.StartProfiler()
+	return vm
+}
+
 func (vm *TVM) ExecuteCode(code []byte) {
-	go vm.eventAPI.Serve()
-	vm.runtime.Startup()
 	vm.runtime.Context(0, -1, code)
 }

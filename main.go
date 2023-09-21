@@ -160,8 +160,7 @@ func main() {
 		ProgramManager: tvm.ProgramManagerConfig{
 			Code: c,
 		},
-	})
-
+	}).Startup()
 	vm.ExecuteCode(c)
 
 	// 	// tvm.T()

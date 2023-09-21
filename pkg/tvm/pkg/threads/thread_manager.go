@@ -14,6 +14,7 @@ type ThreadManager interface {
 	GetParent(current int) *Thread
 	Manage()
 	NewThread(id int, parentID int) *Thread
+	APIPath() string
 }
 type threadManager struct {
 	pool Pool
@@ -52,8 +53,10 @@ func (tm *threadManager) GetParent(current int) *Thread {
 	return tm.pool.Get(tm.pool.Get(current).ParentID())
 }
 
+func (tm *threadManager) APIPath() string { return "thread.manager" }
+
 func (tm *threadManager) Manage() {
-	c := &nando.Client{}
+	c := eapi.Client()
 	for {
 		c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 			Notifier: &events.Notifier{

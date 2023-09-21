@@ -16,6 +16,7 @@ type MemoryManager interface {
 	AllocateHeap(size int)
 	AllocateStack(size int)
 	Stack() *Stack
+	APIPath() string
 }
 
 type memoryManager struct {
@@ -78,6 +79,8 @@ func (mmu *memoryManager) AllocateHeap(size int) {
 func (mmu *memoryManager) AllocateStack(size int) {
 	mmu.memoryAllocator.AllocateStack(size)
 }
+
+func (mmu *memoryManager) APIPath() string { return "memory.manager" }
 
 func (mmu *memoryManager) Stack() *Stack {
 	return mmu.stack

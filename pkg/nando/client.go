@@ -1,9 +1,14 @@
 package nando
 
-type Client struct{}
+import "fmt"
+
+type Client struct {
+	Server string
+}
 
 func (c *Client) Do(req *Request) (*Response, error) {
-	serving.Submit(req)
-	resp := <-serving.responses
+	serving[c.Server].Submit(req)
+	resp := <-serving[c.Server].responses
+	fmt.Println(resp)
 	return resp, nil
 }

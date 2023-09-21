@@ -1,3 +1,5 @@
 package nando
 
-type Response struct{}
+type Response struct {
+	Data interface{}
+}

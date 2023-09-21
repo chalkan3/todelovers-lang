@@ -2,6 +2,7 @@ package threads
 
 import (
 	"mary_guica/pkg/nando"
+	eapi "mary_guica/pkg/tvm/internal/api/events"
 	"mary_guica/pkg/tvm/pkg/events"
 )
 
@@ -29,7 +30,7 @@ type Thread struct {
 func NewThread(id int, parentID int) *Thread {
 	t := &Thread{
 		metadata:       NewMetadata(id, parentID),
-		eventAPIClient: &nando.Client{},
+		eventAPIClient: eapi.Client(),
 		id:             id,
 		parentID:       parentID,
 		action: &Controll{
@@ -47,29 +48,17 @@ func NewThread(id int, parentID int) *Thread {
 
 }
 
-func (t *Thread) Next()                      { t.action.Next <- true }
-func (t *Thread) SetWait()                   { t.action.Wait.Freeze <- true }
-func (t *Thread) SetWaitRelease()            { t.action.Wait.Release <- true }
-func (t *Thread) MoveProgramPointer(pos int) { t.programPointer += pos }
-func (t *Thread) GetProgramArg(pos int) int  { return t.programPointer + pos }
-func (t *Thread) Wait() chan bool            { return t.action.Wait.Freeze }
-func (t *Thread) ParentID() int              { return t.metadata.ParentID() }
-func (t *Thread) WaitRelease() chan bool     { return t.action.Wait.Release }
-
-func (t *Thread) MovePC(increment int) {
-	defer t.Next()
-	// t.pc += increment
-}
-
-func (t *Thread) Done() chan bool { return t.action.Done }
+func (t *Thread) Next()                  { t.action.Next <- true }
+func (t *Thread) SetWait()               { t.action.Wait.Freeze <- true }
+func (t *Thread) SetWaitRelease()        { t.action.Wait.Release <- true }
+func (t *Thread) Wait() chan bool        { return t.action.Wait.Freeze }
+func (t *Thread) ParentID() int          { return t.metadata.ParentID() }
+func (t *Thread) WaitRelease() chan bool { return t.action.Wait.Release }
+func (t *Thread) Done() chan bool        { return t.action.Done }
 func (t *Thread) SetDone() {
 	t.action.Done <- true
 }
-
 func (t *Thread) GetID() int { return t.id }
-
-func (t *Thread) GetPC() int { return 1 } //t.pc }
-
 func (t *Thread) Execute(run func(threadID int, args ...interface{}), threadID int, args ...interface{}) {
 	for {
 		select {

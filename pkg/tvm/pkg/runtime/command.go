@@ -1,7 +1,12 @@
 package runtime
 
 import (
+	"fmt"
+	"mary_guica/pkg/nando"
+	capi "mary_guica/pkg/tvm/internal/api/control_plane"
+	control "mary_guica/pkg/tvm/pkg/control_plane"
 	"mary_guica/pkg/tvm/pkg/register"
+	"mary_guica/pkg/tvm/pkg/threads"
 )
 
 type Command interface {
@@ -12,7 +17,20 @@ type base struct {
 	requester FlightAttendant
 }
 
+func getManager[T control.Manager](apiPath string) T {
+	c := capi.Client()
+	req := nando.NewRequest(apiPath, nil)
+	response, _ := c.Do(req)
+	return capi.Cast[T](response)
+}
+
+func getThreadManager() threads.ThreadManager {
+	return getManager[threads.ThreadManager]("thread.manager")
+}
+
 func (b *base) Request(fn interface{}) Output {
+	threadManager := getThreadManager()
+	fmt.Println(threadManager)
 	go b.requester.Request(fn)
 	return <-b.requester.WaitForReponse()
 }

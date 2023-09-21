@@ -86,7 +86,7 @@ func (s *DoneState) Do(thread *Thread) {
 }
 
 func notify(title string, threadID int) {
-	c := &nando.Client{}
+	c := eapi.Client()
 	c.Do(nando.NewRequest(eapi.Notify.String(), &eapi.NotifyRequest{
 		Notifier: &events.Notifier{
 			Handler: "NOTIFY",

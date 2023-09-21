@@ -7,6 +7,9 @@ import (
 	"mary_guica/pkg/tvm/pkg/threads"
 )
 
+type Manager interface {
+	APIPath() string
+}
 type MemoryManagerConfig struct {
 	FrameSize int
 }

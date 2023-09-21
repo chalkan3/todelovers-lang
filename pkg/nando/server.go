@@ -1,13 +1,16 @@
 package nando
 
-import "sync"
+import (
+	"sync"
+)
 
-var serving = NewServer()
+var serving = make(map[string]*Server)
 
 type HandleFunc func(*Request) (*Response, error)
 type RequestHandler chan *Request
 type ReponseHandler chan *Response
 type ServerClosed chan bool
+type ServerRunning chan bool
 
 type Handler struct {
 	Name       string
@@ -24,21 +27,25 @@ type Server struct {
 	closed ServerClosed
 }
 
-func NewServer() *Server {
-	return &Server{
+func NewServer(label string) *Server {
+	s := &Server{
 		handlers:  make(map[string]HandleFunc),
 		requests:  make(RequestHandler),
 		responses: make(ReponseHandler),
 		closed:    make(ServerClosed),
 	}
+
+	serving[label] = s
+
+	return s
 }
 
-func Listen(handlers ...*Handler) bool {
+func (s *Server) Listen(handlers ...*Handler) bool {
 	for _, h := range handlers {
-		serving.HandleFunc(h.Name, h.HandleFunc)
+		s.HandleFunc(h.Name, h.HandleFunc)
 	}
-	go serving.worker()
-	return <-serving.closed
+	go s.worker()
+	return <-s.closed
 }
 
 func (s *Server) HandleFunc(funcName string, handler HandleFunc) {
